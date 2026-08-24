@@ -1,0 +1,4 @@
+Authorization issued: ./bigbangexpeditions/authorizations/1460a8b1-4b03-485c-941e-06cb5fb0107f.json
+Expires: 1787625877046  Scope: DIMENSION  Generation: 1
+Next: stop server, run scripts/production/execute-reset.sh 1460a8b1-4b03-485c-941e-06cb5fb0107f
+

@@ -1,0 +1,2 @@
+Authorization canceled — status LOCKED. Artifact revoked if it was still ISSUED.
+

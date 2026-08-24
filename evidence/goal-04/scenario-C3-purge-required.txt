@@ -1,0 +1,3 @@
+REFUSED: PURGE_ACK_REQUIRED: player additions chest(+1), furnace(+1) — re-run with purge manifest hash 4c5a91b45964
+REFUSED: PURGE_ACK_REQUIRED: player additions chest(+1), furnace(+1) — re-run with purge manifest hash 4c5a91b45964
+

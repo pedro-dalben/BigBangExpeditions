@@ -1,0 +1,6 @@
+closingWarningOffsetsMinutes = [1]
+closingDurationMinutes = 1
+announcementsEnabled = true
+soundEnabled = true
+openingAnnouncementEnabled = true
+
