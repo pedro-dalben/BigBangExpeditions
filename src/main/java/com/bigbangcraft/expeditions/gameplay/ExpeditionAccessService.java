@@ -107,7 +107,10 @@ public final class ExpeditionAccessService {
         int z = (int) Math.floor(player.getZ());
         int y = expedition.getHeight(
                 net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        com.bigbangcraft.expeditions.player.SessionRecovery.markTransferStart(player);
         player.teleportTo(expedition, x + 0.5, y + 1.0, z + 0.5, player.getYRot(), player.getXRot());
+        com.bigbangcraft.expeditions.player.SessionRecovery.markTransferDone(player);
+        com.bigbangcraft.expeditions.player.SessionRecovery.stampGeneration(player, services);
 
         send(player, "bbe.entry.success", x, y + 1, z);
         send(player, "bbe.entry.return_hint");
@@ -156,13 +159,17 @@ public final class ExpeditionAccessService {
         EvacuationService.markOutside(player);
 
         if (evaluation.accepted() && target != null && rp != null) {
+            com.bigbangcraft.expeditions.player.SessionRecovery.markTransferStart(player);
             player.teleportTo(target, rp.x, rp.y, rp.z, rp.yaw, rp.pitch);
+            com.bigbangcraft.expeditions.player.SessionRecovery.markTransferDone(player);
             send(player, "bbe.leave.success", rp.toString());
             auditLeft(services, name, "OK");
             return LeaveOutcome.LEFT;
         }
 
+        com.bigbangcraft.expeditions.player.SessionRecovery.markTransferStart(player);
         teleportToFallbackSpawn(server, player);
+        com.bigbangcraft.expeditions.player.SessionRecovery.markTransferDone(player);
         switch (evaluation.fallbackReason()) {
             case "stale_dimension" -> send(player, "bbe.leave.stale_dimension");
             default -> send(player, "bbe.leave.fallback_spawn");

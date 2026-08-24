@@ -82,32 +82,12 @@ public final class EvacuationService {
         player.getPersistentData().remove(INSIDE_MARKER);
     }
 
+    /** True when the persistent inside-marker is present. */
     public static boolean hasStaleMarker(ServerPlayer player) {
         return player.getPersistentData().getBoolean(INSIDE_MARKER);
     }
 
-    /** Handles join-after-disconnect-inside: evict unless lifecycle is OPEN again. */
-    public static void onJoin(ServerPlayer player, RuntimeServices services) {
-        try {
-            if (!hasStaleMarker(player)) return;
-            var state = services.lifecycle().current().status;
-            if (state == LifecycleState.OPEN) {
-                // reopened since disconnect; allow re-entry but refresh marker semantics
-                return;
-            }
-            ServerLevel overworld = player.getServer().overworld();
-            BlockPos spawn = overworld.getSharedSpawnPos();
-            player.teleportTo(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
-            markOutside(player);
-            player.getPersistentData().remove(com.bigbangcraft.expeditions.teleport.ReturnPosition.key());
-            player.sendSystemMessage(Component.literal(
-                    "You disconnected inside the expedition during maintenance — moved to overworld spawn."));
-            services.audit().record(AuditEvent.of("PLAYER_EVACUATED", "join-handler")
-                    .subject(player.getName().getString()).outcome("EVICT_ON_JOIN"));
-        } catch (Exception e) {
-            // fail safe: never crash login; the player simply stays put this tick
-        }
-    }
+    // Join-time recovery moved to player.SessionRecovery (Goal 04 generation-aware matrix).
 
     private record Action2(EvacuationPlan.ActionType type, String playerName) {}
 

@@ -30,6 +30,7 @@ public class BigBangExpeditions {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new StartupGate());
         MinecraftForge.EVENT_BUS.register(DimensionTravelGate.class);
+        MinecraftForge.EVENT_BUS.register(new com.bigbangcraft.expeditions.player.RespawnRedirect());
         LOG.info("BigBangExpeditions init — lifecycle-aware expedition management");
     }
 
@@ -51,7 +52,7 @@ public class BigBangExpeditions {
     @SubscribeEvent
     public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent e) {
         if (e.getEntity() instanceof ServerPlayer player) {
-            EvacuationService.onJoin(player, RuntimeServices.get(player.getServer()));
+            com.bigbangcraft.expeditions.player.SessionRecovery.onJoin(player);
         }
     }
 
