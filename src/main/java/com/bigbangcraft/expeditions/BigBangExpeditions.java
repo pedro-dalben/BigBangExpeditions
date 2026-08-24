@@ -7,6 +7,7 @@ import com.bigbangcraft.expeditions.command.LifecycleCommand;
 import com.bigbangcraft.expeditions.command.OpacSelfTestCommand;
 import com.bigbangcraft.expeditions.command.SectorCommand;
 import com.bigbangcraft.expeditions.core.RuntimeServices;
+import com.bigbangcraft.expeditions.core.StartupGate;
 import com.bigbangcraft.expeditions.lifecycle.EvacuationService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
@@ -25,6 +26,7 @@ public class BigBangExpeditions {
 
     public BigBangExpeditions() {
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new StartupGate());
         LOG.info("BigBangExpeditions init — lifecycle-aware expedition management");
     }
 
