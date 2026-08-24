@@ -36,7 +36,9 @@ public final class LifecycleCommand {
                                 .executes(ctx -> status(ctx.getSource())))
                         .then(Commands.literal("close")
                                 .requires(s -> s.hasPermission(3))
-                                .executes(ctx -> close(ctx.getSource())))
+                                .executes(ctx -> close(ctx.getSource()))
+                                .then(Commands.literal("immediate")
+                                        .executes(ctx -> closeImmediate(ctx.getSource()))))
                         .then(Commands.literal("abort-close")
                                 .requires(s -> s.hasPermission(3))
                                 .executes(ctx -> abortClose(ctx.getSource())))
@@ -123,17 +125,38 @@ public final class LifecycleCommand {
     }
 
     /** OPEN → CLOSING → EVACUATING → LOCKED as one deliberate operation. */
+    /** Player-facing close: starts the timed warning sequence (Goal 04). */
     private static int close(CommandSourceStack src) {
         String actor = src.getTextName();
         RuntimeServices services = svc(src);
         long start = System.currentTimeMillis();
+        String err = com.bigbangcraft.expeditions.gameplay.ClosureService
+                .beginTimedClosing(src.getServer(), services, actor, 0);
+        if (err != null) {
+            refuse(src, services, "LIFECYCLE_CLOSE", err);
+            return 0;
+        }
+        services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)
+                .states(LifecycleState.OPEN.name(), LifecycleState.CLOSING.name())
+                .outcome("OK").duration(System.currentTimeMillis() - start)
+                .detail("mode", "timed"));
+        send(src, "Closing sequence started. Extraction runs automatically at deadline.");
+        return 1;
+    }
+
+    /** Operator override: skip warnings and extract immediately (legacy Goal 03 flow). */
+    private static int closeImmediate(CommandSourceStack src) {
+        String actor = src.getTextName();
+        RuntimeServices services = svc(src);
+        long start = System.currentTimeMillis();
         try {
-            var err1 = services.lifecycle().transition(LifecycleState.CLOSING, actor, "close requested");
+            var err1 = services.lifecycle().transition(LifecycleState.CLOSING, actor, "immediate close requested");
             if (err1.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err1.get()); return 0; }
 
             int evacuated = EvacuationService.evacuateAll(src.getServer(), services, actor);
             services.lifecycle().transition(LifecycleState.EVACUATING, actor,
                     "evacuated " + evacuated + " player(s)");
+            services.lifecycle().clearClosingSchedule();
 
             // nobody may remain inside before LOCKED
             var level = src.getServer().getLevel(
@@ -150,7 +173,6 @@ public final class LifecycleCommand {
             var err4 = services.lifecycle().transition(LifecycleState.LOCKED, actor, "dimension locked");
             if (err4.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err4.get()); return 0; }
 
-            // keep the staging sector view aligned with the production lifecycle
             syncSector(src, LifecycleState.LOCKED);
 
             services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)
@@ -162,23 +184,6 @@ public final class LifecycleCommand {
             return 1;
         } catch (IOException e) {
             src.sendFailure(Component.literal("close failed (persist error): " + e.getMessage()));
-            return 0;
-        }
-    }
-
-    private static int abortClose(CommandSourceStack src) {
-        String actor = src.getTextName();
-        try {
-            LifecycleRecord cur = svc(src).lifecycle().current();
-            var err = svc(src).lifecycle().transition(LifecycleState.OPEN, actor, "closure aborted");
-            if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_ABORT", err.get()); return 0; }
-            svc(src).audit().record(AuditEvent.of("LIFECYCLE_ABORT_CLOSE", actor)
-                    .states(cur.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
-            syncSector(src, LifecycleState.OPEN);
-            src.sendSuccess(() -> Component.literal("Closure aborted — expedition reopened."), false);
-            return 1;
-        } catch (IOException e) {
-            src.sendFailure(Component.literal("abort failed: " + e.getMessage()));
             return 0;
         }
     }
@@ -196,7 +201,6 @@ public final class LifecycleCommand {
         }
     }
 
-    /** Records PASS/FAIL while VALIDATING. FAIL forces the FAILED path. */
     private static int recordValidation(CommandSourceStack src, String resultRaw) {
         String actor = src.getTextName();
         String result = resultRaw == null ? "" : resultRaw.trim().toUpperCase();
@@ -222,7 +226,26 @@ public final class LifecycleCommand {
         }
     }
 
-    /** VALIDATING → OPEN; hard-gated on recorded PASS. */
+    /** Cancels a running timed closing (Goal 04). */
+    private static int abortClose(CommandSourceStack src) {
+        String actor = src.getTextName();
+        RuntimeServices services = svc(src);
+        try {
+            LifecycleRecord cur = services.lifecycle().current();
+            String err = com.bigbangcraft.expeditions.gameplay.ClosureService
+                    .abortClosing(src.getServer(), services, actor);
+            if (err != null) { refuse(src, services, "LIFECYCLE_ABORT", err); return 0; }
+            services.audit().record(AuditEvent.of("LIFECYCLE_ABORT_CLOSE", actor)
+                    .states(cur.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
+            syncSector(src, LifecycleState.OPEN);
+            src.sendSuccess(() -> Component.literal("Closure aborted — expedition reopened."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("abort failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
     private static int open(CommandSourceStack src) {
         String actor = src.getTextName();
         try {
@@ -240,6 +263,8 @@ public final class LifecycleCommand {
             svc(src).audit().record(AuditEvent.of("LIFECYCLE_OPEN", actor)
                     .states(rec.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
             syncSector(src, LifecycleState.OPEN);
+            com.bigbangcraft.expeditions.gameplay.ClosureService.announceOpening(
+                    src.getServer(), generation);
             src.sendSuccess(() -> Component.literal("Expedition is OPEN. Generation " + generation + "."), false);
             return 1;
         } catch (IOException e) {

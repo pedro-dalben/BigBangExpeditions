@@ -30,6 +30,11 @@ public final class LifecycleRecord {
     /** Generation snapshot taken when VALIDATING began; -1 when not applicable. */
     public int generationBeforeReset = -1;
 
+    /** Goal 04: deadline of the timed closing sequence (0 = not scheduled). */
+    public long closingDeadlineEpochMs = 0;
+    /** Goal 04: highest closing warning threshold already announced (-1 = none). */
+    public int lastClosingWarnMinutes = -1;
+
     /** Recent transitions for post-crash diagnosis (audit trail is separate). */
     public List<TransitionEvent> recent = new ArrayList<>();
 

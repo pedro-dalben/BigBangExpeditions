@@ -108,4 +108,63 @@ public final class LifecycleService {
         r.recordTransition(System.currentTimeMillis(), r.status, r.status, by, "bind authorization " + r.activeAuthId);
         store.save(r);
     }
+
+    // ------------------------------------------- Goal 04: timed closing ------
+
+    /**
+     * Starts the player-facing closing sequence: OPEN → CLOSING with a
+     * persisted deadline. Returns error message on refusal, empty on success.
+     */
+    public Optional<String> startClosing(long deadlineEpochMs, String by) throws IOException {
+        LifecycleRecord r = store.load();
+        Optional<String> err = LifecycleState.rejectTransition(r.status, LifecycleState.CLOSING);
+        if (err.isPresent()) return err;
+        long now = System.currentTimeMillis();
+        if (r.status != LifecycleState.CLOSING) { // idempotent re-issue tolerated
+            r.status = LifecycleState.CLOSING;
+        }
+        r.closingDeadlineEpochMs = deadlineEpochMs;
+        r.lastClosingWarnMinutes = -1;
+        r.updatedAtEpochMs = now;
+        r.lastChangeReason = "closing scheduled";
+        r.recordTransition(now, LifecycleState.OPEN, LifecycleState.CLOSING, by,
+                "closing scheduled until " + deadlineEpochMs);
+        store.save(r);
+        return Optional.empty();
+    }
+
+    /** Cancels a running closing sequence back to OPEN. */
+    public Optional<String> abortClosing(String by) throws IOException {
+        LifecycleRecord r = store.load();
+        if (r.status != LifecycleState.CLOSING) {
+            return Optional.of("not closing (current: " + r.status + ")");
+        }
+        long now = System.currentTimeMillis();
+        r.closingDeadlineEpochMs = 0;
+        r.lastClosingWarnMinutes = -1;
+        Optional<String> err = transition(LifecycleState.OPEN, by, "closing aborted");
+        if (err.isPresent()) {
+            // restore schedule fields before surfacing the failure
+            r.closingDeadlineEpochMs = 0;
+            store.save(r);
+        }
+        return err;
+    }
+
+    /** Clears closing bookkeeping once extraction begins or the state leaves CLOSING. */
+    public void clearClosingSchedule() throws IOException {
+        LifecycleRecord r = store.load();
+        if (r.closingDeadlineEpochMs == 0 && r.lastClosingWarnMinutes == -1) return;
+        r.closingDeadlineEpochMs = 0;
+        r.lastClosingWarnMinutes = -1;
+        store.save(r);
+    }
+
+    /** Persists an emitted closing warning threshold (idempotency marker). */
+    public void markClosingWarned(int minutesThreshold) throws IOException {
+        LifecycleRecord r = store.load();
+        r.lastClosingWarnMinutes = minutesThreshold;
+        r.updatedAtEpochMs = System.currentTimeMillis();
+        store.save(r);
+    }
 }
