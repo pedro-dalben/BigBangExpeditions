@@ -34,7 +34,7 @@ def read_pkt(s):
     rid, ptype = struct.unpack("<ii", data[:8])
     return rid, ptype, data[8:-2].decode("utf8", "replace")
 
-s = socket.create_connection((host, port), timeout=10)
+s = socket.create_connection((host, port), timeout=180)
 s.sendall(pkt(1, 3, pw))
 rid, _, _ = read_pkt(s)
 if rid == -1:

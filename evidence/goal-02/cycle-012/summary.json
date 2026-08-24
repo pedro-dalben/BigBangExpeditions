@@ -1,0 +1,8 @@
+{
+  "cycle": 12,
+  "plan": "c11a836b-8d85-4825-88e2-170bb2e6c683",
+  "result": "PASS",
+  "note": "completed manually after campaign driver RCON stall; soak cycle",
+  "spawnerCount": 480,
+  "loadedChunks": 1024
+}
