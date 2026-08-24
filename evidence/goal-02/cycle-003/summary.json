@@ -1,0 +1,16 @@
+{
+  "cycle": 3,
+  "plan": "0ca40231-e461-4297-a576-7c1666211d9f",
+  "sector": "b04",
+  "result": "SEAM_VARIANCE_OBSERVED",
+  "spawnerCount": {"pre": 480, "post": 480},
+  "deltas": {
+    "lootr:lootr_chest": -1,
+    "createbigcannons:cannon": -1,
+    "minecraft:blast_furnace": "+2",
+    "minecraft:campfire": "+2",
+    "minecraft:command_block": "+2"
+  },
+  "analysis": "Variance concentrated in boundary-straddling content: neighbor regions r.3.4/r.4.3 were NOT deleted, so cross-border structures/deferred writes differ per run. Direct Phase 19 seam evidence: sector-level (B2) reset has irreducible boundary variance while undeclared neighbors persist.",
+  "implication": "B2 validation must either tolerate small boundary deltas or adopt whole-dimension reset (B1/B3) for determinism."
+}

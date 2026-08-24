@@ -1,0 +1,12 @@
+{
+  "cycle": 2,
+  "plan": "cc8766d2-e939-4da1-89d7-af141849c0ad",
+  "sector": "b04",
+  "result": "PASS_WITH_CAVEAT",
+  "fullCoverage": true,
+  "spawnerCount": {"pre": 480, "post": 480},
+  "beDeltaVsUnsettledBaseline": -47,
+  "consecutiveCapturesIdentical": true,
+  "note": "-47 BE delta traced to LC deferred generation (GlobalTodo) not drained during pre-reset baseline capture; consecutive captures after settle are identical. Rollback of this backup later verified by sha256.",
+  "rollbackVerifiedHash": "0b00d8b00ec4852c705e3b74404a9a87e1815dc309a46048e4ec5d587b7ad0bd"
+}

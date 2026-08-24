@@ -1,0 +1,5 @@
+execute-reset with server RUNNING      -> RESET REFUSED (exit 43)
+execute-reset with sentinel MISSING    -> RESET REFUSED (exit 42)
+rollback-reset with sentinel MISSING   -> RESET REFUSED (exit 42)
+execute-reset with TAMPERED manifest
+  (maxChunkX 159->999)                 -> RESET REFUSED (checksum, exit 47)

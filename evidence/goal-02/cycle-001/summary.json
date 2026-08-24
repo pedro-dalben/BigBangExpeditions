@@ -1,0 +1,9 @@
+{
+  "cycle": 1,
+  "plan": "544e77aa-fde1-4cbc-aa0d-95a71e010562",
+  "sector": "b04",
+  "result": "METHODOLOGY_FAIL",
+  "note": "baseline captured with partial chunk coverage (644/1024). Post-reset compare invalid as measurement; reset mechanics themselves clean (backup verified, only r.4.4 files touched).",
+  "deleted": ["region/r.4.4.mca", "entities/r.4.4.mca", "poi/r.4.4.mca"],
+  "lesson": "baseline capture requires full-region forceload first"
+}
