@@ -1,5 +1,6 @@
 package com.bigbangcraft.expeditions;
 
+import com.bigbangcraft.expeditions.command.DimensionStatusCommand;
 import com.bigbangcraft.expeditions.command.ExpeditionCommand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -21,6 +22,7 @@ public class BigBangExpeditions {
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent e) {
         ExpeditionCommand.register(e.getDispatcher());
+        DimensionStatusCommand.register(e.getDispatcher());
         LOG.info("Registered /expedition commands");
     }
 }
