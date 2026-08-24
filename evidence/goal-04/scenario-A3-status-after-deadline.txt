@@ -1,0 +1,15 @@
+=== Expedition lifecycle ===
+status: CLOSING (entry BLOCKED)
+generation: 1
+activeAuthorization: 05e5d0ce-5a98-4f8d-90ee-394304cafd83
+lastValidationResult: PASS
+lastChange: closing scheduled
+opened: 1787589850317  lastReset: 1787589850317
+recent: 1787590539117 LOCKED->OPEN by=Rcon validated reopen
+recent: 1787590710672 RESETTING->RECOVERY_REQUIRED by=startup-gate INTERRUPTED_DELETION: RESETTING without DELETION_DONE (lastCompletedPhase=DELETION_INTENT) — dimension may be half-deleted
+recent: 1787590734192 RECOVERY_REQUIRED->LOCKED by=Rcon RECOVERY: "simulated interruption test — no destructive action taken, journal removed"
+recent: 1787590748260 LOCKED->OPEN by=Rcon validated reopen
+recent: 1787598901714 OPEN->CLOSING by=Rcon closing scheduled until 1787598961714
+
+Extraction in -1 min -19 sec (1787598961714).
+

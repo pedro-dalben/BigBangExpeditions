@@ -9,6 +9,7 @@ import com.bigbangcraft.expeditions.command.OpacSelfTestCommand;
 import com.bigbangcraft.expeditions.command.SectorCommand;
 import com.bigbangcraft.expeditions.core.RuntimeServices;
 import com.bigbangcraft.expeditions.core.StartupGate;
+import com.bigbangcraft.expeditions.gameplay.ClosureService;
 import com.bigbangcraft.expeditions.gameplay.DimensionTravelGate;
 import com.bigbangcraft.expeditions.lifecycle.EvacuationService;
 import net.minecraft.commands.Commands;
@@ -31,6 +32,7 @@ public class BigBangExpeditions {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new StartupGate());
         MinecraftForge.EVENT_BUS.register(DimensionTravelGate.class);
+        MinecraftForge.EVENT_BUS.register(ClosureService.class);
         MinecraftForge.EVENT_BUS.register(new com.bigbangcraft.expeditions.player.RespawnRedirect());
         LOG.info("BigBangExpeditions init — lifecycle-aware expedition management");
     }
