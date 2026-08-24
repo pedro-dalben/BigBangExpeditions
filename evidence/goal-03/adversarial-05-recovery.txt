@@ -1,0 +1,5 @@
+Recovery acknowledged — status LOCKED. Re-run pipeline deliberately.
+
+=== Expedition health ===
+playersMayEnter: NO (LOCKED)
+lifecycle: LOCKED generation=1

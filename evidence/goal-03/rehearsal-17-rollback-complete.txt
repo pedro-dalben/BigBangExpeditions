@@ -1,0 +1,19 @@
+=== Expedition health ===
+playersMayEnter: NO (RECOVERY_REQUIRED)
+lifecycle: RECOVERY_REQUIRED generation=1
+REFUSED: illegal transition RECOVERY_REQUIRED -> VALIDATING (allowed: [LOCKED])
+
+REFUSED: validation results only accepted while VALIDATING (current: RECOVERY_REQUIRED)
+
+REFUSED: illegal transition RECOVERY_REQUIRED -> OPEN (allowed: [LOCKED])
+
+
+=== Expedition health ===
+playersMayEnter: NO (RECOVERY_REQUIRED)
+lifecycle: RECOVERY_REQUIRED generation=1
+resetLock: free
+lastOperation: 05e5d0ce-5a98-4f8d-90ee-394304cafd83 active=false lastPhase=ROLLBACK_DONE
+pendingAuthorizations: 1
+lastValidationResult: PASS
+rollbackAvailable: 2 backup(s) on disk
+

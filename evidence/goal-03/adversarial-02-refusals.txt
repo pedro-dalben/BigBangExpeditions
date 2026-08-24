@@ -1,0 +1,8 @@
+--- 1) executor while another process holds reset.lock:
+RESET REFUSED — another executor holds the reset lock
+
+--- 2) replay of CONSUMED authorization (71e...):
+RESET REFUSED — AUTH_REFUSED:LEDGER_REVOKED
+
+--- 3) tampered artifact checksum:
+AUTH_OK 05e5d0ce-5a98-4f8d-90ee-394304cafd83 scope=DIMENSION generation=1

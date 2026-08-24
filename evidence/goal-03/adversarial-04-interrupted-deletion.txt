@@ -1,0 +1,5 @@
+=== Expedition health ===
+playersMayEnter: NO (RECOVERY_REQUIRED)
+lifecycle: RECOVERY_REQUIRED generation=1
+resetLock: free
+[24ago.2026 13:58:30.672] [Server thread/ERROR] [BigBangExpeditions/StartupGate/]: EXPEDITION RECOVERY REQUIRED — INTERRUPTED_DELETION: RESETTING without DELETION_DONE (lastCompletedPhase=DELETION_INTENT) — dimension may be half-deleted

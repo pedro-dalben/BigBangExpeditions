@@ -1,0 +1,5 @@
+--- 3) TAMPERED artifact (generation edited in place):
+AUTH_REFUSED:CHECKSUM_INVALID
+
+--- restored original artifact:
+AUTH_OK 05e5d0ce-5a98-4f8d-90ee-394304cafd83 scope=DIMENSION generation=1

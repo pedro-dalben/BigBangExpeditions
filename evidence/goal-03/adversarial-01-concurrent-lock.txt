@@ -1,0 +1,2 @@
+--- executor while lock held:
+RESET REFUSED — a Minecraft server process appears to be running

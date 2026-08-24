@@ -1,0 +1,9 @@
+Recovery acknowledged — status LOCKED. Re-run pipeline deliberately.
+
+
+=== Expedition lifecycle ===
+status: LOCKED (entry BLOCKED)
+generation: 1
+activeAuthorization: 05e5d0ce-5a98-4f8d-90ee-394304cafd83
+lastValidationResult: PASS
+lastChange: RECOVERY: "rollback 05e5d0ce verified: pre+post restore hashes OK, census matches qualification baseline"
