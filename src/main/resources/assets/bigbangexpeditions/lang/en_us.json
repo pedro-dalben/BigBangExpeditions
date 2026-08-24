@@ -1,0 +1,59 @@
+{
+  "bbe.state.open": "OPEN",
+  "bbe.state.closing": "CLOSING",
+  "bbe.state.evacuating": "EVACUATING",
+  "bbe.state.locked": "LOCKED DOWN",
+  "bbe.state.preflight": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.backup": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.reset_ready": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.resetting": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.booting": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.validating": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.failed": "TEMPORARILY UNAVAILABLE",
+  "bbe.state.recovery_required": "TEMPORARILY UNAVAILABLE",
+
+  "bbe.entry.success": "☢ Entry logged for expedition zone [{0}, {1}, {2}].",
+  "bbe.entry.return_hint": "Use /expedition leave to return to the safe zone.",
+  "bbe.entry.warning.build": "WARNING: nothing you build or store here survives the end of the zone.",
+  "bbe.entry.warning.death": "WARNING: items left on your corpse are lost when the zone closes.",
+  "bbe.entry.warning.claim": "This territory is temporary and cannot be claimed.",
+  "bbe.entry.blocked.unavailable": "Expedition temporarily unavailable.",
+  "bbe.entry.blocked.closing": "The expedition is being locked down now. Wait for the next opening.",
+  "bbe.entry.blocked.state": "Entry denied: expedition is {0}.",
+  "bbe.entry.blocked.unreadable": "Entry denied: expedition status unreadable (fail-closed).",
+  "bbe.entry.already_inside": "You are already inside the expedition zone.",
+
+  "bbe.leave.success": "Return confirmed: {0}.",
+  "bbe.leave.fallback_spawn": "Return point lost — you were taken to the central shelter.",
+  "bbe.leave.stale_dimension": "Stored return destination no longer exists — taken to the central shelter.",
+  "bbe.leave.not_inside": "You are not inside the expedition zone.",
+
+  "bbe.login.evicted.maintenance": "You disconnected inside the expedition during lockdown — moved to safety.",
+  "bbe.login.recovered.new_zone": "The zone you were exploring was locked down between sessions. You returned to the safe zone.",
+  "bbe.login.transfer_interrupted": "Transfer interrupted — position restored safely.",
+  "bbe.death.respawn_redirected": "Your camp inside the expedition cannot be a respawn point. You woke up in the persistent world.",
+
+  "bbe.closing.warn.minutes": "☢ EXPEDITION LOCKDOWN IN {0} MINUTES. Withdraw with what you carry — nothing in the territory survives.",
+  "bbe.closing.warn.one_minute": "☢ EXPEDITION LOCKDOWN IN 1 MINUTE.",
+  "bbe.closing.warn.seconds": "☢ LOCKDOWN IMMINENT: {0} seconds.",
+  "bbe.closing.now": "☢ Expedition locked down. All survivors extracted.",
+  "bbe.closing.started": "☢ Lockdown order issued. Extraction begins in {0} minutes.",
+
+  "bbe.opening.title": "☢ NEW EXPEDITION ZONE AVAILABLE",
+  "bbe.opening.body": "Recon confirmed new routes through the urban zone. Hospitals, precincts, depots and abandoned buildings are accessible again. Enter at your own risk. [Zone #{0}]",
+
+  "bbe.where.format": "Sector: {0} | Position: {1}, {2}, {3}",
+  "bbe.where.wilderness": "Unmapped area",
+  "bbe.where.not_inside": "You are not inside the expedition zone.",
+
+  "bbe.status.line": "Expedition: {0}",
+  "bbe.status.generation": "Zone cycle: #{0}",
+
+  "bbe.build.policy_line": "Zone rule: temporary construction allowed; permanent industry and storage forbidden.",
+  "bbe.claim.line": "Claims are disabled in the expedition — temporary territory under military control.",
+
+  "bbe.admin.players_inside": "Survivors inside the expedition: {0}",
+  "bbe.admin.none_inside": "No survivors inside the expedition.",
+  "bbe.error.generic": "Operation failed. Try again.",
+  "bbe.error.lifecycle_unreadable": "Expedition status unreadable — operation refused (fail-closed)."
+}
