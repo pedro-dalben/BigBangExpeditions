@@ -1,0 +1,219 @@
+package com.bigbangcraft.expeditions.command;
+
+import com.bigbangcraft.expeditions.audit.AuditEvent;
+import com.bigbangcraft.expeditions.core.RuntimeServices;
+import com.bigbangcraft.expeditions.lifecycle.EntryDecision;
+import com.bigbangcraft.expeditions.lifecycle.EvacuationService;
+import com.bigbangcraft.expeditions.lifecycle.LifecycleRecord;
+import com.bigbangcraft.expeditions.lifecycle.LifecycleState;
+import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+
+import java.io.IOException;
+
+/**
+ * /expedition lifecycle — production dimension lifecycle control.
+ *
+ * Permission split (Goal 03):
+ *   level 2: read-only inspection (status)
+ *   level 3: lifecycle-affecting operations (close/abort/open/validate/recover)
+ *
+ * Destructive execution itself remains offline-only (scripts + authorization
+ * artifacts); this command never destroys anything.
+ */
+public final class LifecycleCommand {
+    private static final String DIM = "bigbangexpeditions:expedition";
+
+    private LifecycleCommand() {}
+
+    public static void register(CommandDispatcher<CommandSourceStack> d) {
+        d.register(Commands.literal("expedition")
+                .requires(s -> s.hasPermission(2))
+                .then(Commands.literal("lifecycle")
+                        .then(Commands.literal("status")
+                                .executes(ctx -> status(ctx.getSource())))
+                        .then(Commands.literal("close")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> close(ctx.getSource())))
+                        .then(Commands.literal("abort-close")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> abortClose(ctx.getSource())))
+                        .then(Commands.literal("begin-validation")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> beginValidation(ctx.getSource())))
+                        .then(Commands.literal("open")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> open(ctx.getSource())))
+                        .then(Commands.literal("recover")
+                                .requires(s -> s.hasPermission(3))
+                                .then(Commands.argument("reason", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                        .executes(ctx -> recover(ctx.getSource(),
+                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "reason")))))));
+    }
+
+    private record Src(CommandSourceStack src) {
+        String actor() {
+            return src.getTextName();
+        }
+    }
+
+    private static RuntimeServices svc(CommandSourceStack src) {
+        return RuntimeServices.get(src.getServer());
+    }
+
+    private static int status(CommandSourceStack src) {
+        try {
+            LifecycleRecord r = svc(src).lifecycle().current();
+            src.sendSuccess(() -> Component.literal("=== Expedition lifecycle ==="), false);
+            send(src, "status: " + r.status + (r.status.playersMayEnter()
+                    ? " (players may enter)" : " (entry BLOCKED)"));
+            send(src, "generation: " + r.generation);
+            send(src, "activeAuthorization: " + (r.activeAuthId.isEmpty() ? "<none>" : r.activeAuthId));
+            send(src, "lastValidationResult: " + (r.lastValidationResult.isEmpty() ? "<none>" : r.lastValidationResult));
+            if (!r.failureReason.isEmpty()) send(src, "failureReason: " + r.failureReason);
+            if (!r.lastChangeReason.isEmpty()) send(src, "lastChange: " + r.lastChangeReason);
+            send(src, String.format("opened: %d  lastReset: %d",
+                    r.lastOpenedAtEpochMs, r.lastResetAtEpochMs));
+            int recent = Math.min(5, r.recent.size());
+            for (int i = r.recent.size() - recent; i < r.recent.size(); i++) {
+                LifecycleRecord.TransitionEvent e = r.recent.get(i);
+                send(src, String.format("recent: %s %s->%s by=%s %s", e.atEpochMs, e.from, e.to,
+                        e.by.isEmpty() ? "-" : e.by, e.reason));
+            }
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("lifecycle UNREADABLE — fail-closed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /** OPEN → CLOSING → EVACUATING → LOCKED as one deliberate operation. */
+    private static int close(CommandSourceStack src) {
+        String actor = src.getTextName();
+        RuntimeServices services = svc(src);
+        long start = System.currentTimeMillis();
+        try {
+            var err1 = services.lifecycle().transition(LifecycleState.CLOSING, actor, "close requested");
+            if (err1.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err1.get()); return 0; }
+
+            int evacuated = EvacuationService.evacuateAll(src.getServer(), services, actor);
+            services.lifecycle().transition(LifecycleState.EVACUATING, actor,
+                    "evacuated " + evacuated + " player(s)");
+
+            // nobody may remain inside before LOCKED
+            var level = src.getServer().getLevel(
+                    com.bigbangcraft.expeditions.integration.lostcities.LostCitiesAdapter.expeditionDimensionKey());
+            int stillInside = EvacuationService.playersInside(level).size();
+            if (stillInside > 0) {
+                String reason = stillInside + " player(s) still inside after evacuation";
+                services.lifecycle().transition(LifecycleState.FAILED, actor, reason);
+                services.auditRefusal("LIFECYCLE_CLOSE", actor, reason);
+                src.sendFailure(Component.literal("CLOSE ABORTED: " + reason));
+                return 0;
+            }
+
+            var err4 = services.lifecycle().transition(LifecycleState.LOCKED, actor, "dimension locked");
+            if (err4.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err4.get()); return 0; }
+
+            services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)
+                    .states(LifecycleState.OPEN.name(), LifecycleState.LOCKED.name())
+                    .outcome("OK").duration(System.currentTimeMillis() - start)
+                    .detail("evacuated", "" + evacuated).detail("dimension", DIM));
+            src.sendSuccess(() -> Component.literal(
+                    "Expedition closed. Evacuated " + evacuated + " player(s). Status: LOCKED."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("close failed (persist error): " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int abortClose(CommandSourceStack src) {
+        String actor = src.getTextName();
+        try {
+            LifecycleRecord cur = svc(src).lifecycle().current();
+            var err = svc(src).lifecycle().transition(LifecycleState.OPEN, actor, "closure aborted");
+            if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_ABORT", err.get()); return 0; }
+            svc(src).audit().record(AuditEvent.of("LIFECYCLE_ABORT_CLOSE", actor)
+                    .states(cur.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
+            src.sendSuccess(() -> Component.literal("Closure aborted — expedition reopened."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("abort failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int beginValidation(CommandSourceStack src) {
+        String actor = src.getTextName();
+        try {
+            var err = svc(src).lifecycle().transition(LifecycleState.VALIDATING, actor, "post-reset validation started");
+            if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_VALIDATE", err.get()); return 0; }
+            src.sendSuccess(() -> Component.literal("VALIDATING — run baseline compare, then record PASS/FAIL via open/failed path."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("begin-validation failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /** VALIDATING → OPEN; hard-gated on recorded PASS. */
+    private static int open(CommandSourceStack src) {
+        String actor = src.getTextName();
+        try {
+            var rec = svc(src).lifecycle().current();
+            if (!"PASS".equals(rec.lastValidationResult) && rec.status == LifecycleState.VALIDATING) {
+                String msg = "validation gate: record a PASS first (current=" +
+                        (rec.lastValidationResult.isEmpty() ? "<none>" : rec.lastValidationResult) + ")";
+                refuse(src, svc(src), "LIFECYCLE_OPEN", msg);
+                src.sendFailure(Component.literal(msg));
+                return 0;
+            }
+            var err = svc(src).lifecycle().transition(LifecycleState.OPEN, actor, "validated reopen");
+            if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_OPEN", err.get()); return 0; }
+            int generation = svc(src).lifecycle().current().generation;
+            svc(src).audit().record(AuditEvent.of("LIFECYCLE_OPEN", actor)
+                    .states(rec.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
+            src.sendSuccess(() -> Component.literal("Expedition is OPEN. Generation " + generation + "."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("open failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /** Explicit operator recovery from FAILED/RECOVERY_REQUIRED to LOCKED. */
+    private static int recover(CommandSourceStack src, String reason) {
+        String actor = src.getTextName();
+        try {
+            LifecycleRecord cur = svc(src).lifecycle().current();
+            if (cur.status != LifecycleState.FAILED && cur.status != LifecycleState.RECOVERY_REQUIRED) {
+                String msg = "recover only applies to FAILED/RECOVERY_REQUIRED (current: " + cur.status + ")";
+                refuse(src, svc(src), "LIFECYCLE_RECOVER", msg);
+                src.sendFailure(Component.literal(msg));
+                return 0;
+            }
+            var err = svc(src).lifecycle().transition(LifecycleState.LOCKED, actor, "RECOVERY: " + reason);
+            if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_RECOVER", err.get()); return 0; }
+            svc(src).audit().record(AuditEvent.of("LIFECYCLE_RECOVER", actor)
+                    .states(cur.status.name(), LifecycleState.LOCKED.name())
+                    .outcome("OK").reason(reason));
+            src.sendSuccess(() -> Component.literal("Recovery acknowledged — status LOCKED. Re-run pipeline deliberately."), false);
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("recover failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static void refuse(CommandSourceStack src, RuntimeServices services, String event, String reason) {
+        services.auditRefusal(event, src.getTextName(), reason);
+        src.sendFailure(Component.literal("REFUSED: " + reason));
+    }
+
+    private static void send(CommandSourceStack src, String line) {
+        src.sendSuccess(() -> Component.literal(line), false);
+    }
+}

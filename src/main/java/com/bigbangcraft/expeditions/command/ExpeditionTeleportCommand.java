@@ -58,6 +58,23 @@ public final class ExpeditionTeleportCommand {
     }
 
     private static int doEnter(CommandSourceStack src, ServerPlayer player, BlockPos target) {
+        // lifecycle gate: entry only while explicitly OPEN
+        var services = com.bigbangcraft.expeditions.core.RuntimeServices.get(src.getServer());
+        com.bigbangcraft.expeditions.lifecycle.LifecycleState state;
+        try {
+            state = services.lifecycle().current().status;
+        } catch (Exception e) {
+            src.sendFailure(Component.literal(
+                    "REFUSED: expedition lifecycle unreadable — entry blocked (fail-closed)"));
+            return 0;
+        }
+        var decision = com.bigbangcraft.expeditions.lifecycle.EntryDecision.check(state);
+        if (!decision.allowed) {
+            services.auditRefusal("EXPEDITION_ENTER", player.getName().getString(), decision.reason);
+            src.sendFailure(Component.literal("REFUSED: " + decision.reason));
+            return 0;
+        }
+
         ServerLevel expedition = src.getServer().getLevel(LostCitiesAdapter.expeditionDimensionKey());
         if (expedition == null) {
             src.sendFailure(Component.literal(
@@ -74,6 +91,7 @@ public final class ExpeditionTeleportCommand {
         }
 
         storeReturn(player);
+        com.bigbangcraft.expeditions.lifecycle.EvacuationService.markInside(player);
         ServerLevel from = (ServerLevel) player.level();
         double x = target.getX() + 0.5;
         double z = target.getZ() + 0.5;
@@ -103,6 +121,7 @@ public final class ExpeditionTeleportCommand {
                 ReturnPosition rp = ret.get();
                 player.teleportTo(target, rp.x, rp.y, rp.z, rp.yaw, rp.pitch);
                 clearReturn(player);
+                com.bigbangcraft.expeditions.lifecycle.EvacuationService.markOutside(player);
                 src.sendSuccess(() -> Component.literal("Returned to " + rp), false);
                 LOG.info("[leave] {} -> {}", player.getName().getString(), rp);
                 return 1;
@@ -114,6 +133,7 @@ public final class ExpeditionTeleportCommand {
         BlockPos spawn = overworld.getSharedSpawnPos();
         player.teleportTo(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
         clearReturn(player);
+        com.bigbangcraft.expeditions.lifecycle.EvacuationService.markOutside(player);
         src.sendSuccess(() -> Component.literal("Returned to overworld spawn (fallback)."), false);
         return 1;
     }
