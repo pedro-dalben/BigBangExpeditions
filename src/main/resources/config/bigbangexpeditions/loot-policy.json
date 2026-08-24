@@ -1,0 +1,89 @@
+{
+  "_meta": {
+    "goal": "02",
+    "updated": "2026-08-24",
+    "evidence": "docs/architecture/loot-policy.md",
+    "rule": "UNKNOWN fails closed; resets must never duplicate PROGRESSION_ITEM or UNIQUE_ITEM"
+  },
+  "classes": [
+    "REGULAR_LOOT",
+    "RARE_LOOT",
+    "PROGRESSION_ITEM",
+    "UNIQUE_ITEM",
+    "UNKNOWN"
+  ],
+  "items": {
+    "deceasedcraft:research_paper_1": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["loot_table:data/deceasedcraft/loot_tables/chests/multi_courtyardofficetower_6/floor7/dead_body.json"],
+      "note": "quest task 'info_courtyard' (the_first_cure.snbt)"
+    },
+    "deceasedcraft:research_paper_2": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["loot_table:multi_verticalschool dead_body", "loot_table:multi_* second table"],
+      "note": "quest task 'find_wasteland'"
+    },
+    "deceasedcraft:research_paper_3": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["loot_table:multi_terraceplaza_8/floor4/dead_body.json"],
+      "note": "quest task"
+    },
+    "deceasedcraft:research_paper_4": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["loot_table:multi_casino_6/base9/safe.json"],
+      "note": "quest task 'info_casino'"
+    },
+    "deceasedcraft:research_paper_5": {
+      "class": "UNIQUE_ITEM",
+      "sources": [],
+      "note": "NO loot table, recipe, or structure source found in entire pack (full jar sweep 2026-08-24); treat as non-renewable"
+    },
+    "deceasedcraft:research_book": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["recipe:kubejs cures.js shapeless(papers 1-5 + leather)"],
+      "note": "cure chain tier 2"
+    },
+    "deceasedcraft:x_factor": {
+      "class": "UNIQUE_ITEM",
+      "sources": [],
+      "note": "'END OF CONTENT' quest lang; quantity fixed at pack creation, no renewable source"
+    },
+    "deceasedcraft:formula_x": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["recipe:kubejs cures.js create.sequenced_assembly(x_factor...)"],
+      "note": "renewable ONLY while x_factor stock lasts -> effectively capped"
+    },
+    "zombie_extreme:experimental_serum": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["loot_table:zombie_extreme black_ops_cargo_loot.json"],
+      "note": "worldgen military cargo; part of cure progression"
+    },
+    "minecraft:golden_apple": {
+      "class": "PROGRESSION_ITEM",
+      "sources": ["recipe:kubejs cures.js shapeless(apple+formula_x)"],
+      "note": "vanilla recipe removed by pack; cure end product. Vanilla loot-table golden apples are a known gap tracked in loot-policy.md risks"
+    }
+  },
+  "loot_tables": {
+    "lostcities:chests/lostcitychest": {
+      "class": "RARE_LOOT",
+      "items": ["minecraft:diamond", "minecraft:diamond_sword", "minecraft:emerald", "minecraft:gold_ingot"]
+    },
+    "lostcities:chests/raildungeonchest": {
+      "class": "REGULAR_LOOT"
+    },
+    "zombie_extreme:military_cargo_loot": {
+      "class": "REGULAR_LOOT",
+      "note": "weapons/ammo/consumables; blueprints are cosmetic-tier"
+    }
+  },
+  "policy": {
+    "strategy": "A",
+    "summary": "Progression items DO generate in expedition sectors (Strategy A: no generation-side filtering). Renewable reset safety is enforced by acquisition-state tracking: pre-reset inventory snapshot of PROGRESSION_ITEM containers must match baseline exactly, and post-reset validation must prove identical re-generation, never extra copies.",
+    "reset_rules": [
+      "Any PROGRESSION_ITEM delta vs baseline -> RESET REFUSED",
+      "Post-reset validation compares progression-container contents hash against fresh-generation baseline",
+      "UNIQUE_ITEM sources must never be located inside renewable sectors; if found -> sector marked LOCKED and excluded from reset"
+    ]
+  }
+}
