@@ -12,6 +12,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * /expedition lifecycle — production dimension lifecycle control.
@@ -50,7 +51,14 @@ public final class LifecycleCommand {
                                 .requires(s -> s.hasPermission(3))
                                 .then(Commands.argument("reason", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
                                         .executes(ctx -> recover(ctx.getSource(),
-                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "reason")))))));
+                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "reason")))))
+                        .then(Commands.literal("dryrun")
+                                .executes(ctx -> dryRun(ctx.getSource())))
+                        .then(Commands.literal("issue-authorization")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> issueAuthorization(ctx.getSource())))
+                        .then(Commands.literal("health")
+                                .executes(ctx -> health(ctx.getSource())))));
     }
 
     private record Src(CommandSourceStack src) {
@@ -215,5 +223,142 @@ public final class LifecycleCommand {
 
     private static void send(CommandSourceStack src, String line) {
         src.sendSuccess(() -> Component.literal(line), false);
+    }
+
+    // ------------------------------------------------------------------ dry-run
+
+    /** Full production decision pipeline with destruction stubbed. Read-only. */
+    private static int dryRun(CommandSourceStack src) {
+        long start = System.currentTimeMillis();
+        try {
+            var in = com.bigbangcraft.expeditions.reset.ProductionResetFlow.collectInputs(src.getServer());
+            var probe = com.bigbangcraft.expeditions.reset.ProductionResetFlow.diskProbe(src.getServer());
+            boolean lockFree = !new com.bigbangcraft.expeditions.reset.ResetLock(
+                    com.bigbangcraft.expeditions.core.BbeLayout.locksDir(src.getServer()).resolve("reset.lock"))
+                    .isLocked(System.currentTimeMillis());
+            var report = com.bigbangcraft.expeditions.reset.DryRunEngine.run(in, probe, lockFree);
+
+            send(src, "=== Expedition DRY-RUN (" + report.verdict + ") ===");
+            for (var s : report.steps) {
+                send(src, String.format("[%s] %s — %s", s.status, s.name, s.detail));
+            }
+            for (String w : report.warnings) send(src, "WARN: " + w);
+            if (report.wouldIssueArtifact != null) {
+                send(src, "would-issue: " + report.wouldIssueArtifact.authId
+                        + " (simulated only — nothing persisted)");
+            }
+            svc(src).audit().record(AuditEvent.of("DRY_RUN", src.getTextName())
+                    .outcome(report.verdict.name())
+                    .duration(System.currentTimeMillis() - start));
+            return report.verdict == com.bigbangcraft.expeditions.reset.DryRunEngine.Verdict.WOULD_RESET ? 1 : 0;
+        } catch (Exception e) {
+            LOG.error("dry-run failed", e);
+            src.sendFailure(Component.literal("dry-run failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static final org.apache.logging.log4j.Logger LOG =
+            org.apache.logging.log4j.LogManager.getLogger("BigBangExpeditions/Lifecycle");
+
+    /** LOCKED -> PREFLIGHT -> RESET_READY with a persisted authorization artifact. */
+    private static int issueAuthorization(CommandSourceStack src) {
+        String actor = src.getTextName();
+        RuntimeServices services = svc(src);
+        try {
+            var in = com.bigbangcraft.expeditions.reset.ProductionResetFlow.collectInputs(src.getServer());
+            var outcome = com.bigbangcraft.expeditions.reset.AuthorizationService.issue(in);
+
+            if (!outcome.ok()) {
+                for (String rsn : outcome.refusals) send(src, "REFUSED: " + rsn);
+                refuse(src, services, "AUTH_ISSUE", String.join("; ", outcome.refusals));
+                return 0;
+            }
+            var auth = outcome.artifact;
+            Path dir = com.bigbangcraft.expeditions.core.BbeLayout.root(src.getServer()).resolve("authorizations");
+            java.nio.file.Files.createDirectories(dir);
+            Path file = dir.resolve(auth.authId + ".json");
+            java.nio.file.Files.writeString(file, auth.toJson());
+
+            var ledger = new com.bigbangcraft.expeditions.reset.AuthorizationLedger(
+                    com.bigbangcraft.expeditions.core.BbeLayout.authLedgerFile(src.getServer()));
+            var lerr = ledger.recordIssued(auth.authId, auth.generationAtIssue, in.sector.id, actor,
+                    System.currentTimeMillis());
+            if (lerr.isPresent()) { refuse(src, services, "AUTH_ISSUE", lerr.get()); return 0; }
+            var serr = com.bigbangcraft.expeditions.reset.AuthorizationService.supersedePriorIssued(
+                    ledger, in.sector.id, auth.authId, actor, System.currentTimeMillis());
+            if (serr.isPresent()) { refuse(src, services, "AUTH_ISSUE", serr.get()); return 0; }
+
+            // export current fingerprint so the offline CLI can re-verify equality
+            com.bigbangcraft.expeditions.reset.QualificationStore.exportCurrent(
+                    com.bigbangcraft.expeditions.core.BbeLayout.configDir(src.getServer()),
+                    in.currentFingerprint);
+
+            services.lifecycle().setActiveAuth(auth.authId, actor);
+            var t1 = services.lifecycle().transition(LifecycleState.PREFLIGHT, actor, "authorization issued");
+            if (t1.isEmpty()) {
+                services.lifecycle().transition(LifecycleState.RESET_READY, actor,
+                        "authorized; backup+reset run offline");
+            }
+
+            for (String w : outcome.warnings) send(src, "WARN: " + w);
+            services.audit().record(AuditEvent.of("AUTH_ISSUED", actor)
+                    .subject(auth.authId).outcome("OK")
+                    .detail("scope", auth.scope)
+                    .detail("expiresAtEpochMs", "" + auth.expiresAtEpochMs));
+            send(src, "Authorization issued: " + file);
+            send(src, "Expires: " + auth.expiresAtEpochMs + "  Scope: " + auth.scope
+                    + "  Generation: " + auth.generationAtIssue);
+            send(src, "Next: stop server, run scripts/production/execute-reset.sh " + auth.authId);
+            return 1;
+        } catch (Exception e) {
+            LOG.error("issue-authorization failed", e);
+            src.sendFailure(Component.literal("issue failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /** Aggregated operational health answer. */
+    private static int health(CommandSourceStack src) {
+        try {
+            RuntimeServices services = svc(src);
+            LifecycleRecord r = services.lifecycle().current();
+            send(src, "=== Expedition health ===");
+            send(src, "playersMayEnter: " + (r.status.playersMayEnter() ? "YES" : "NO (" + r.status + ")"));
+            send(src, "lifecycle: " + r.status + " generation=" + r.generation);
+
+            boolean lockHeld = new com.bigbangcraft.expeditions.reset.ResetLock(
+                    com.bigbangcraft.expeditions.core.BbeLayout.locksDir(src.getServer()).resolve("reset.lock"))
+                    .isLocked(System.currentTimeMillis());
+            send(src, "resetLock: " + (lockHeld ? "HELD" : "free"));
+
+            var journal = new com.bigbangcraft.expeditions.reset.OperationJournal(
+                    com.bigbangcraft.expeditions.core.BbeLayout.journalDir(src.getServer()));
+            var op = journal.summarizeLatest();
+            send(src, "lastOperation: " + (op == null ? "<none>" :
+                    op.authId() + " active=" + op.hasActiveOp() + " lastPhase=" + op.lastCompletedPhase()));
+
+            var ledger = new com.bigbangcraft.expeditions.reset.AuthorizationLedger(
+                    com.bigbangcraft.expeditions.core.BbeLayout.authLedgerFile(src.getServer()));
+            int issued = ledger.all().values().stream()
+                    .filter(e -> e.status == com.bigbangcraft.expeditions.reset.AuthorizationLedger.Status.ISSUED)
+                    .toList().size();
+            send(src, "pendingAuthorizations: " + issued);
+            send(src, "lastValidationResult: " + (r.lastValidationResult.isEmpty() ? "<none>" : r.lastValidationResult));
+            send(src, "rollbackAvailable: " + rollbackAvailable(src));
+            return 1;
+        } catch (Exception e) {
+            src.sendFailure(Component.literal("health failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static String rollbackAvailable(CommandSourceStack src) throws IOException {
+        Path backups = com.bigbangcraft.expeditions.core.BbeLayout.root(src.getServer()).resolve("backups");
+        if (!java.nio.file.Files.isDirectory(backups)) return "no backups";
+        try (var list = java.nio.file.Files.list(backups)) {
+            long valid = list.filter(java.nio.file.Files::isDirectory).count();
+            return valid == 0 ? "no backups" : valid + " backup(s) on disk";
+        }
     }
 }
