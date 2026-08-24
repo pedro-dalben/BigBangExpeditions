@@ -32,9 +32,7 @@ public final class SectorCommand {
                 .then(Commands.literal("sector")
                         .then(Commands.literal("list").executes(ctx -> list(ctx.getSource())))
                         .then(Commands.literal("status")
-                                .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                        .executes(ctx -> status(ctx.getSource(),
-                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id")))))
+                                .then(idArg(ctx -> status(ctx.getSource(), id(ctx)))))
                         .then(Commands.literal("create")
                                 .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
                                         .then(Commands.argument("regionX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
@@ -51,15 +49,26 @@ public final class SectorCommand {
                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "regionZ"),
                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "sizeRegions"))))))))
                         .then(Commands.literal("lock")
-                                .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                        .executes(ctx -> transition(ctx.getSource(),
-                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
-                                                SectorState.LOCKED))))
+                                .then(idArg(ctx -> transition(ctx.getSource(), id(ctx), SectorState.LOCKED))))
                         .then(Commands.literal("open")
+                                .then(idArg(ctx -> transition(ctx.getSource(), id(ctx), SectorState.OPEN))))
+                        .then(Commands.literal("reset-plan")
+                                .then(idArg(ctx -> resetPlan(ctx.getSource(), id(ctx)))))
+                        .then(Commands.literal("attach-baseline")
                                 .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                        .executes(ctx -> transition(ctx.getSource(),
-                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
-                                                SectorState.OPEN))))));
+                                        .then(Commands.argument("baselineId", com.mojang.brigadier.arguments.StringArgumentType.string())
+                                                .executes(ctx -> attachBaseline(ctx.getSource(),
+                                                        com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
+                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId"))))))));
+    }
+
+    private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> idArg(
+            com.mojang.brigadier.Command<CommandSourceStack> exec) {
+        return Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(exec);
+    }
+
+    private static String id(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        return com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id");
     }
 
     public static Path registryFile(MinecraftServer server) {
@@ -160,6 +169,55 @@ public final class SectorCommand {
         }
         final String msg = id + " -> " + target;
         src.sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    private static int attachBaseline(CommandSourceStack src, String id, String baselineId) {
+        SectorRegistry reg = registry(src.getServer());
+        if (reg.get(id).isEmpty()) {
+            src.sendFailure(Component.literal("REFUSED: unknown sector '" + id + "'"));
+            return 0;
+        }
+        reg.setBaseline(id, baselineId, System.currentTimeMillis());
+        try { reg.save(); } catch (Exception e) {
+            src.sendFailure(Component.literal("registry save failed: " + e.getMessage()));
+            return 0;
+        }
+        final String msg = "baseline '" + baselineId + "' attached to sector " + id;
+        src.sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    private static int resetPlan(CommandSourceStack src, String id) {
+        MinecraftServer server = src.getServer();
+        SectorRegistry reg = registry(server);
+        Optional<SectorRecord> rec = reg.get(id);
+        if (rec.isEmpty()) {
+            src.sendFailure(Component.literal("REFUSED: unknown sector '" + id + "'"));
+            return 0;
+        }
+        var outcome = com.bigbangcraft.expeditions.reset.ResetPlanService.createPlan(
+                server, rec.get(), src.getTextName());
+        if (!outcome.ok()) {
+            src.sendFailure(Component.literal("RESET REFUSED — plan not created for " + id));
+            for (String reason : outcome.refusals) {
+                src.sendFailure(Component.literal("- " + reason));
+            }
+            return 0;
+        }
+        // manifest written; move sector into RESET_PLANNED
+        Optional<String> t = reg.transition(id, SectorState.RESET_PLANNED, System.currentTimeMillis());
+        if (t.isPresent()) {
+            src.sendSuccess(() -> Component.literal("Manifest written but state unchanged: " + t.get()), false);
+            return 1;
+        }
+        try { reg.save(); } catch (Exception e) {
+            src.sendFailure(Component.literal("registry save failed: " + e.getMessage()));
+            return 0;
+        }
+        Path file = outcome.file;
+        src.sendSuccess(() -> Component.literal("reset-plan created: " + file), false);
+        src.sendSuccess(() -> Component.literal("Next: stop server, run scripts/staging/execute-reset.sh with this plan."), false);
         return 1;
     }
 
