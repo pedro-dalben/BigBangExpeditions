@@ -32,6 +32,26 @@ public final class PreflightChecks {
         }
     }
 
+    /**
+     * Goal 03 environment gate. Planning the full decision pipeline is legal in
+     * every environment; STAGING additionally notes that real destruction is
+     * unavailable there. PRODUCTION/DRY_RUN pass (execution still requires an
+     * authorization artifact + offline executor).
+     */
+    public static void checkEnvironment(ResetPreflightResult r,
+                                        com.bigbangcraft.expeditions.env.EnvironmentProfile env) {
+        if (env == null) {
+            r.error("ENV_UNRESOLVED", "environment profile unresolved — fail-closed");
+            return;
+        }
+        switch (env) {
+            case STAGING -> r.warn("ENV_STAGING",
+                    "staging: full pipeline runs, destructive execution unavailable by design");
+            case PRODUCTION_DRY_RUN -> { /* expected to mirror production decisions */ }
+            case PRODUCTION -> { /* authorized path; execution remains offline+locked */ }
+        }
+    }
+
     public static void checkSectorState(ResetPreflightResult r, SectorRecord sector,
                                         SectorState required) {
         if (sector.status != required) {

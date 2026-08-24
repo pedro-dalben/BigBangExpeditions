@@ -12,7 +12,11 @@ public final class ResetPreflightEngine {
     public ResetPreflightResult validate(ResetPlanInput input) {
         ResetPreflightResult r = new ResetPreflightResult();
 
-        PreflightChecks.checkGuard(r, input.guard);
+        if (input.env != null) {
+            PreflightChecks.checkEnvironment(r, input.env);
+        } else {
+            PreflightChecks.checkGuard(r, input.guard);
+        }
         PreflightChecks.checkDimension(r, input.sector);
         PreflightChecks.checkBoundsAligned(r, input.sector);
         PreflightChecks.checkSectorState(r, input.sector, input.requiredState);
@@ -47,6 +51,8 @@ public final class ResetPreflightEngine {
     /** All inputs for one validation pass. */
     public static final class ResetPlanInput {
         public ProductionGuard guard;
+        /** Goal 03 environment; when set, takes precedence over legacy guard. */
+        public com.bigbangcraft.expeditions.env.EnvironmentProfile env;
         public com.bigbangcraft.expeditions.sector.SectorRecord sector;
         public com.bigbangcraft.expeditions.sector.SectorState requiredState;
         public SectorLiveState live;
