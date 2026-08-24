@@ -41,7 +41,7 @@ public enum LifecycleState {
             Map.entry(CLOSING, Set.of(EVACUATING, OPEN)),
             Map.entry(EVACUATING, Set.of(LOCKED, OPEN)),
             Map.entry(LOCKED, Set.of(PREFLIGHT, OPEN)),
-            Map.entry(PREFLIGHT, Set.of(BACKUP, LOCKED)),
+            Map.entry(PREFLIGHT, Set.of(BACKUP, RESET_READY, LOCKED)),
             Map.entry(BACKUP, Set.of(RESET_READY, FAILED)),
             Map.entry(RESET_READY, Set.of(RESETTING, LOCKED)),
             Map.entry(RESETTING, Set.of(BOOTING)),
