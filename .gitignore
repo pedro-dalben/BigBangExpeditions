@@ -20,3 +20,6 @@ bigbangexpeditions/
 # OS
 .DS_Store
 Thumbs.db
+
+# Goal 02 staging (disposable, never tracked)
+.staging/
