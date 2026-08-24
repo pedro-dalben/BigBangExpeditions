@@ -1,0 +1,10 @@
+{
+  "cycle": 6,
+  "plan": "d4bef428-d541-4167-8c8d-632e6da3a46f",
+  "result": "PASS",
+  "resetDurationSec": 0,
+  "regenSettleSec": 150,
+  "detail": "",
+  "referenceBaseline": "c4base_bigbangexpeditions_expedition_1787559483338.json",
+  "cycleBaseline": "c6base_bigbangexpeditions_expedition_1787559985286.json"
+}
