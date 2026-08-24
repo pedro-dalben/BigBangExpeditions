@@ -53,7 +53,15 @@ class OperationJournalTest {
         var s2 = journal().summarizeLatest();
         assertFalse(s2.hasActiveOp());
         assertEquals(OperationJournal.PHASE_LIFECYCLE_RESETTING, s2.lastCompletedPhase(),
-                "lastCompletedPhase is the final operational marker (FINALIZED excluded)");
+                "lastCompletedPhase is the highest canonical phase (FINALIZED excluded)");
+        assertTrue(s2.deletionReached());
+
+        // a post-finalized ROLLBACK_DONE must not mask the deletion proof
+        journal().recordCompleted("aaaaaaaa-bbbb-cccc-dddd-00000000000b", OperationJournal.PHASE_ROLLBACK_DONE, 6);
+        var s3 = journal().summarizeLatest();
+        assertFalse(s3.hasActiveOp());
+        assertEquals(OperationJournal.PHASE_ROLLBACK_DONE, s3.lastCompletedPhase());
+        assertTrue(s3.deletionReached(), "DELETION_DONE proof survives later ROLLBACK_DONE");
     }
 
     @Test

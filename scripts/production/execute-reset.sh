@@ -83,8 +83,14 @@ for root, _, names in os.walk(backup):
         files.append({"path": rel,
                       "sha256": hashlib.sha256(data).hexdigest(),
                       "bytes": len(data)})
-m = {"formatVersion": 1, "backupId": auth_id, "lifecycleGeneration": -1,
-     "bbeVersion": "?", "minecraftVersion": "?", "forgeVersion": "?",
+auth = json.load(open(os.path.join(backup, "..", "..", "authorizations", auth_id + ".json")))
+fp = auth.get("installFingerprint") or {}
+m = {"formatVersion": 1, "backupId": auth_id,
+     "authorizationSha256": auth.get("authChecksum"),
+     "lifecycleGeneration": auth.get("generationAtIssue", -1),
+     "bbeVersion": fp.get("bbeVersion", "?"),
+     "minecraftVersion": fp.get("minecraftVersion", "?"),
+     "forgeVersion": fp.get("forgeVersion", "?"),
      "createdAtEpochMs": __import__("time").time_ns() // 1_000_000,
      "files": files, "totalBytes": sum(f["bytes"] for f in files)}
 body = json.dumps(m, sort_keys=True)
@@ -133,6 +139,10 @@ else:
 PYEOF
     java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "FINALIZED" >/dev/null
+
+    # single-use: consume the authorization only after full success
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.AuthorizationLedgerCli \
+        "$LEDGER_FILE" "$AUTH_ID" consume >/dev/null
 
     info "RESET COMPLETE for authorization $AUTH_ID"
     info "next: start the server — startup gate resumes BOOTING->VALIDATING; run baseline compare then /expedition lifecycle open"

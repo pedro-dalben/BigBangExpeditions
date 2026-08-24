@@ -10,8 +10,8 @@ package com.bigbangcraft.expeditions.lifecycle;
  */
 public final class StartupRecovery {
 
-    public record JournalSummary(boolean hasActiveOp, String lastCompletedPhase) {
-        public static final JournalSummary NONE = new JournalSummary(false, null);
+    public record JournalSummary(boolean hasActiveOp, String lastCompletedPhase, boolean deletionReached) {
+        public static final JournalSummary NONE = new JournalSummary(false, null, false);
     }
 
     public record Finding(boolean recoveryRequired, String reason, String detail) {
@@ -30,7 +30,7 @@ public final class StartupRecovery {
         LifecycleState s = r.status;
         boolean activeOp = j != null && j.hasActiveOp();
         String phase = j == null ? null : j.lastCompletedPhase();
-        boolean deletionProof = PHASE_DELETION_DONE.equals(phase);
+        boolean deletionProof = j != null && j.deletionReached();
 
         // A journal that reached DELETION_DONE (even if later finalized) is
         // durable proof the destructive phase completed.

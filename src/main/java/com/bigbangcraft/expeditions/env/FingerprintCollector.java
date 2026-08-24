@@ -67,7 +67,7 @@ public final class FingerprintCollector {
 
         TreeMap<String, String> cfg = new TreeMap<>();
         cfg.put("loot-policy.json", sha256File(server.getServerDirectory().toPath()
-                .resolve(CONFIG_LOOT_POLICY.replace("config/", "config/"))));
+                .resolve(CONFIG_LOOT_POLICY)));
         f.configSha256 = cfg;
         return f;
     }

@@ -36,7 +36,7 @@ class VerifyAuthCliTest {
         long now = System.currentTimeMillis();
         String id = issueAndRecord(now, true);
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 1000, null,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertTrue(r.ok(), r.message());
     }
 
@@ -45,7 +45,7 @@ class VerifyAuthCliTest {
         long now = System.currentTimeMillis();
         String id = issueAndRecord(now, false); // artifact written, ledger never recorded
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 1000, null,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertFalse(r.ok());
         assertEquals("LEDGER_UNKNOWN", r.message());
     }
@@ -56,7 +56,7 @@ class VerifyAuthCliTest {
         String id = issueAndRecord(now, true);
         new AuthorizationLedger(bbeRoot().resolve("authorization-ledger.json")).consume(id, "executor", now + 1);
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 2000, null,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertFalse(r.ok());
         assertEquals("LEDGER_CONSUMED", r.message());
     }
@@ -73,7 +73,7 @@ class VerifyAuthCliTest {
         Files.writeString(fpFile, drifted.toJson());
 
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 1000, fpFile,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertFalse(r.ok());
         assertEquals("FINGERPRINT_MISMATCH", r.message());
     }
@@ -86,14 +86,14 @@ class VerifyAuthCliTest {
         Files.writeString(fpFile, TestIssues.fingerprint("").toJson());
 
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 1000, fpFile,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertTrue(r.ok(), r.message());
     }
 
     @Test
     void malformedIdsRefuseWithoutIO() {
         for (String bad : new String[]{"../etc/passwd", "", null, "short"}) {
-            var r = VerifyAuthCli.verify(bbeRoot(), bad, 1, null, bbeRoot().resolve("l.json"));
+            var r = VerifyAuthCli.verify(bbeRoot(), bad, 1, null, bbeRoot().resolve("l.json"), null);
             assertFalse(r.ok());
         }
     }
@@ -108,7 +108,7 @@ class VerifyAuthCliTest {
         Files.writeString(file, a.toJson());
 
         var r = VerifyAuthCli.verify(bbeRoot(), id, now + 1000, null,
-                bbeRoot().resolve("authorization-ledger.json"));
+                bbeRoot().resolve("authorization-ledger.json"), ResetAuthorization.SCOPE_DIMENSION);
         assertFalse(r.ok());
         assertEquals("CHECKSUM_INVALID", r.message());
     }

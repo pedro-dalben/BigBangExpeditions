@@ -31,9 +31,10 @@ public final class VerifyAuthCli {
      * @param nowEpochMs     wall clock
      * @param fingerprintFile JSON export of the current InstallFingerprint
      *                        (written by the in-game issue flow); nullable to skip
+     * @param expectedScope  required scope (executor passes DIMENSION); null = any
      */
     public static Result verify(Path bbeRoot, String authId, long nowEpochMs,
-                                Path fingerprintFile, Path ledgerFile) {
+                                Path fingerprintFile, Path ledgerFile, String expectedScope) {
         try {
             if (authId == null || !authId.matches("[0-9a-fA-F\\-]{36}")) {
                 return new Result(false, "MALFORMED_AUTH_ID");
@@ -43,6 +44,10 @@ public final class VerifyAuthCli {
             ResetAuthorization a = ResetAuthorization.fromJson(Files.readString(file));
             if (a == null) return new Result(false, "AUTH_UNREADABLE");
             if (!a.checksumValid()) return new Result(false, "CHECKSUM_INVALID");
+
+            if (expectedScope != null && !expectedScope.equals(a.scope)) {
+                return new Result(false, "SCOPE_MISMATCH:" + a.scope);
+            }
 
             // ledger first: an unknown/consumed/revoked artifact is dead
             AuthorizationLedger ledger = new AuthorizationLedger(ledgerFile);
@@ -73,14 +78,16 @@ public final class VerifyAuthCli {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("AUTH_REFUSED:usage: VerifyAuthCli <bbeRoot> <authId> [current-fingerprint.json] [ledger.json]");
+            System.out.println("AUTH_REFUSED:usage: VerifyAuthCli <bbeRoot> <authId> "
+                    + "[current-fingerprint.json] [ledger.json] [expectedScope]");
             System.exit(40);
         }
         Path root = Path.of(args[0]);
         String authId = args[1];
         Path fpFile = args.length >= 3 ? Path.of(args[2]) : null;
         Path ledger = args.length >= 4 ? Path.of(args[3]) : root.resolve("authorization-ledger.json");
-        Result r = verify(root, authId, System.currentTimeMillis(), fpFile, ledger);
+        String scope = args.length >= 5 ? args[4] : null;
+        Result r = verify(root, authId, System.currentTimeMillis(), fpFile, ledger, scope);
         System.out.println(r.ok ? r.message : "AUTH_REFUSED:" + r.message);
         System.exit(r.ok ? 0 : 40);
     }

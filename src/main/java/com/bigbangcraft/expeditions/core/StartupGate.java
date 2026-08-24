@@ -28,7 +28,7 @@ public final class StartupGate {
             OperationJournal.OpSummary s = journal.summarizeLatest();
             StartupRecovery.JournalSummary js = s == null
                     ? StartupRecovery.JournalSummary.NONE
-                    : new StartupRecovery.JournalSummary(s.hasActiveOp(), s.lastCompletedPhase());
+                    : new StartupRecovery.JournalSummary(s.hasActiveOp(), s.lastCompletedPhase(), s.deletionReached());
 
             StartupRecovery.Finding f = StartupRecovery.evaluate(r, js);
             if (f.recoveryRequired()) {

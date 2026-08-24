@@ -119,12 +119,14 @@ public final class OperationJournal {
                     for (var ph : j.phases) {
                         int idx = CANONICAL_ORDER.indexOf(ph.name);
                         if (idx > bestIdx) { bestIdx = idx; last = ph.name; }
+                        if (PHASE_DELETION_DONE.equals(ph.name)) bestIdx = Math.max(bestIdx, CANONICAL_ORDER.indexOf(PHASE_DELETION_DONE));
                     }
-                    OpSummary s = new OpSummary(j.authId, !finished, last, j.startedAtEpochMs);
+                    boolean deletionReached = bestIdx >= CANONICAL_ORDER.indexOf(PHASE_DELETION_DONE);
+                    OpSummary s = new OpSummary(j.authId, !finished, last, j.startedAtEpochMs, deletionReached);
                     if (best == null || s.startedAt() > best.startedAt()) best = s;
                 } catch (Exception ignored) {
                     // unreadable journal is itself evidence of interruption
-                    OpSummary s = new OpSummary(p.getFileName().toString(), true, "UNREADABLE", Long.MAX_VALUE);
+                    OpSummary s = new OpSummary(p.getFileName().toString(), true, "UNREADABLE", Long.MAX_VALUE, false);
                     if (best == null) best = s;
                 }
             }
@@ -132,7 +134,8 @@ public final class OperationJournal {
         return best;
     }
 
-    public record OpSummary(String authId, boolean hasActiveOp, String lastCompletedPhase, long startedAt) {}
+    public record OpSummary(String authId, boolean hasActiveOp, String lastCompletedPhase,
+                            long startedAt, boolean deletionReached) {}
 
     public void remove(String authId) throws IOException {
         Files.deleteIfExists(fileFor(sanitize(authId)));

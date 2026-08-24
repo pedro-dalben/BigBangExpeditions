@@ -31,7 +31,7 @@ verify_auth() {
     local FP_ARG=""
     [ -f "$CURRENT_FP_FILE" ] && FP_ARG="$CURRENT_FP_FILE"
     java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.VerifyAuthCli \
-        "$BBE_ROOT" "$AUTH_ID" ${FP_ARG:+$FP_ARG} "$LEDGER_FILE"
+        "$BBE_ROOT" "$AUTH_ID" ${FP_ARG:+$FP_ARG} "$LEDGER_FILE" DIMENSION
 }
 
 # Production destructive operations require BOTH signals:
