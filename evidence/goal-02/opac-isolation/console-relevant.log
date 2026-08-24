@@ -1,0 +1,186 @@
+[03:56:20] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/org/spongepowered/mixin/0.8.5/mixin-0.8.5.jar%2365!/ Service=ModLauncher Env=SERVER
+[03:56:21] [main/WARN] [ne.mi.fm.lo.mo.ModDiscoverer/SCAN]: Locator {mods folder locator at /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/mods} returned 3 files which are client-side-only mods, but we're on a dedicated server. They will be skipped!
+[03:56:21] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraftforge/fmlcore/1.20.1-47.4.0/fmlcore-1.20.1-47.4.0.jar is missing mods.toml file
+[03:56:21] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraftforge/javafmllanguage/1.20.1-47.4.0/javafmllanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[03:56:21] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraftforge/lowcodelanguage/1.20.1-47.4.0/lowcodelanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[03:56:21] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraftforge/mclanguage/1.20.1-47.4.0/mclanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[03:56:22] [main/WARN] [ne.mi.ja.se.JarSelector/]: Attempted to select a dependency jar for JarJar which was passed in as source: expandability. Using Mod File: /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/mods/expandability-9.0.4.jar
+[03:56:25] [main/ERROR] [mixin/]: Mixin config fabric-item-group-api-v1.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config fabric-item-group-api-v1.client.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config fabric-item-api-v1.client.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config betterbiomeblend-common.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config fabric-data-attachment-api-v1.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config fabric-data-attachment-api-v1.client.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config mcreator_mem_fix.mixins.json does not specify "minVersion" property
+[03:56:25] [main/ERROR] [mixin/]: Mixin config yacl.mixins.json does not specify "minVersion" property
+	- bigbangexpeditions 1.0.0
+[03:56:27] [main/ERROR] [ne.mi.fm.lo.RuntimeDistCleaner/DISTXFORM]: Attempted to load class net/minecraft/client/MouseHandler for invalid dist DEDICATED_SERVER
+[03:56:27] [main/ERROR] [ne.mi.fm.lo.RuntimeDistCleaner/DISTXFORM]: Attempted to load class net/minecraft/client/gui/screens/Screen for invalid dist DEDICATED_SERVER
+[03:56:28] [main/ERROR] [ne.mi.fm.lo.RuntimeDistCleaner/DISTXFORM]: Attempted to load class net/minecraft/client/player/AbstractClientPlayer for invalid dist DEDICATED_SERVER
+[03:56:28] [main/ERROR] [ne.mi.fm.lo.RuntimeDistCleaner/DISTXFORM]: Attempted to load class com/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer for invalid dist DEDICATED_SERVER
+[03:56:28] [main/ERROR] [ne.mi.fm.lo.RuntimeDistCleaner/DISTXFORM]: Attempted to load class com/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer for invalid dist DEDICATED_SERVER
+[03:56:33] [modloading-worker-0/INFO] [bigbangexpeditions/]: BigBangExpeditions init — read-only diagnostics, no reset
+[03:56:35] [modloading-worker-0/INFO] [YetAnotherConfigLib/]: Deserializing YACLConfig from '/home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/config/yacl.json5'
+[03:56:35] [modloading-worker-0/ERROR] [BadOptimizations/]: BadOptimizations is a client-only mod, this will have no effect on a server.
+[03:56:44] [modloading-worker-0/ERROR] [AttributeFix/]: Attribute ID 'tacz:tacz.bullet_resistance' does not belong to a known attribute. This entry will be ignored.
+[03:56:45] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraft/server/1.20.1-20230612.114412/server-1.20.1-20230612.114412-srg.jar%23674!/assets/.mcassetsroot' uses unexpected schema
+[03:56:45] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/libraries/net/minecraft/server/1.20.1-20230612.114412/server-1.20.1-20230612.114412-srg.jar%23674!/data/.mcassetsroot' uses unexpected schema
+[03:56:50] [main/INFO] [bigbangexpeditions/]: Registered /expedition commands
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor5/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_apartmentsmallcbroken/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentiale_0/ground/oak_crate
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_0/floor2/oak_drawers
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_flatmedium_3/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_cabin1_1/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_2/floor6/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotelb/top/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor3/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_courtyardofficetower_10/floor5/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_0/base1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_4/ground/metal_shelves_three
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_6/floor20/spruce_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_flatmedium_3/floor1/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_8/floor5/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_timbertower_0/ground/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/scattered_hideout_1/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_flatapartment_0/floor2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policestation_0/ground/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:entity/t2_ammunitions
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_2/base1/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_1/base1/metal_shelvels_two
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_verticalschool_8/base2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_2/top/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor5/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_2/base1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office1b/base1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_cabin2_0/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/base9/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/floor8/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotela/floor2/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gasstation_1/ground/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/scattered_treehouse_1/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/floor1/oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_6/floor20/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_2/floor2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office3a/top/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_workshop_0/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_8/floor5/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_verticalschool_8/base2/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_2/floor6/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_1/floor2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_17/base3/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_3/base1/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_5/floor11/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_courtyardofficetower_6/floor17/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/floor8/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialsurvivor_0/ground/oak_crate
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/floor8/metelshelvesfour
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_5/floor11/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_3/base1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_courtyardofficetower_6/floor17/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_flatmedium_0/top/spruce_crate
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/base9/metalshelvesfive
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/base2/large_shelves_fill
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentialb/floor1/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hardwarestorecedamaged/ground/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor3/stripped_oak_bedside_cabinet
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor6/stripped_oak_bedside_cabinet
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotelb/floor3/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/base1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office3c/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentiale_0/ground/stripped_dark_oak_bedside_cabinet
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:entity/t1_ammunitions
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hoteld/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policestation_1/base1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_8/base2/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_0/floor2/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gasstation_1/ground/red_kitchen_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_apartmentsmallc/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/street_highrise_office_all/police/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_2/top/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotela/floor2/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_gasstation/ground/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_6/floor20/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_16/floor13/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/scattered_cabin_2/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentiald/floor2/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_1/floor2/oak_drawers
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_16/floor13/birch_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_convenientstore_2/ground/metalshelvesone
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gunstore_1/base1/metal_shelvels_two
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_8/floor5/birch_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/floor3/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_2/top/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_oasiscondo_0/floor2/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentiala/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotela/floor2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentialb/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_terraceplaza_8/floor4/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_cabin3_1/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_planecrash1_4/floor1/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_0/floor5/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_16/floor13/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_5/floor11/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialsurvivor_1/base1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office1b/base1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentiala/floor1/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_officebank/top/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_timbertower_0/ground/spruce_crate
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialsurvivor_1/ground/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hoteld/floor1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentiald/floor2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office2a/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_2/base9/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:entity/t3_ammunitions
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_0/ground/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office1b/base1/metalshelvesone
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policestation_1/base1/metelshelvesfour
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_planecrash1_4/floor1/dead_body
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_thering_6/floor18/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_office3b/top/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_gasstation/ground/yellow_kitchen_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/scattered_cabin_1/floor1/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/base2/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_terraceplaza_31/base2/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_courtyardofficetower_10/floor5/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hardwarestorecedamaged/ground/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialf_1/floor1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_policeapartment_0/ground/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_convenientstore_3/ground/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_filmworkstower_5/floor11/lootr_chest
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_flatapartment_0/floor2/magazine_boxes
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_casino_7/base7/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_residentiald/floor1/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialf_1/ground/stripped_dark_oak_desk_cabinet
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_hotelb/floor3/safe
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:entity/t4_ammunitions
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_gallery_9/base2/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/base2/iron_locker
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_farmhouse1_4/floor2/dark_oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/building_policeoffice1/floor2/oak_drawer
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_residentialsurvivor_1/ground/stripped_dark_oak_desk_cabinet
+[03:56:51] [Worker-Main-14/ERROR] [ne.mi.co.ForgeHooks/]: Couldn't parse element loot_tables:deceasedcraft:chests/multi_taigaresidence_3/floor6/lootr_chest
+[03:56:55] [main/ERROR] [minecraft/ServerAdvancementManager]: Parsing error loading custom advancement animal_pen:grant_book_on_first_join: Advancement criteria cannot be empty
+[03:56:55] [main/ERROR] [minecraft/ServerAdvancementManager]: Parsing error loading custom advancement parcool:grant_parcool_guide: Advancement criteria cannot be empty
+[03:56:55] [main/INFO] [ne.we.bi.BiomeReplacer/]: [BiomeReplacer] Successfully replaced biomes in bigbangexpeditions:expedition
+[03:56:56] [Server thread/INFO] [BigBangExpeditions/LostCities/]: Registered expedition dimension with Lost Cities: bigbangexpeditions:expedition -> deceasedcraft_onlycities
+[03:56:56] [Server thread/ERROR] [mixin/]: Injection error: LVT in net/minecraft/world/entity/npc/VillagerTrades$EmeraldsForVillagerTypeItem::m_213663_(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/item/trading/MerchantOffer; has incompatible changes at opcode 34 in callback fabric-object-builder-v1.mixins.json:TradeOffersTypeAwareBuyForOneEmeraldFactoryMixin->@Inject::failOnNullItem(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/util/RandomSource;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;Lnet/minecraft/world/item/ItemStack;)V.
+[03:56:57] [Server thread/INFO] [terrablender/]: Initialized TerraBlender biomes for level stem bigbangexpeditions:expedition
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:56:58] [Server thread/ERROR] [incontrol/]: Unknown item 'tacz:ammo'!
+[03:57:00] [Server thread/INFO] [minecraft/DedicatedServer]: Done (4.143s)! For help, type "help"
+[03:57:00] [Server thread/ERROR] [puffish_skills/]: [puffish_skills] Mod configuration could not be loaded:
+[03:57:00] [Server thread/INFO] [FTB Quests/]: Loading quests from /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/config/ftbquests/quests
+[03:57:48] [Server thread/INFO] [BigBangExpeditions/OpacSelfTest/]: [opac-selftest] PASS dim=bigbangexpeditions:expedition chunk=130,130

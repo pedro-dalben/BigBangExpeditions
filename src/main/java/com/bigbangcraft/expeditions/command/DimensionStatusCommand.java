@@ -98,7 +98,19 @@ public final class DimensionStatusCommand {
         // OPAC
         boolean opac = com.bigbangcraft.expeditions.integration.opac.OpacAdapter.isOpacPresent();
         src.sendSuccess(() -> Component.literal("OPAC: " + (opac ? "present" : "NOT present")), false);
-        if (!opac) warnings.add("OPAC not present — claim prohibition cannot be verified");
+        if (!opac) {
+            warnings.add("OPAC not present — claim prohibition cannot be verified");
+        } else {
+            Boolean claimable = com.bigbangcraft.expeditions.integration.opac.OpacAdapter
+                    .isDimensionClaimable(server, dimId);
+            if (claimable == null) {
+                warnings.add("OPAC isClaimable(" + dimId + ") could not be determined — claims isolation UNVERIFIED");
+            } else if (claimable) {
+                warnings.add("OPAC reports expedition dimension CLAIMABLE — isolation NOT enforced!");
+            } else {
+                src.sendSuccess(() -> Component.literal("OPAC claims in dimension: PROHIBITED (unclaimable)"), false);
+            }
+        }
 
         // world folder path (safely derivable)
         Path worldFolder = server.getServerDirectory().toPath()

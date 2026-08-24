@@ -3,6 +3,7 @@ package com.bigbangcraft.expeditions;
 import com.bigbangcraft.expeditions.command.DimensionStatusCommand;
 import com.bigbangcraft.expeditions.command.ExpeditionCommand;
 import com.bigbangcraft.expeditions.command.ExpeditionTeleportCommand;
+import com.bigbangcraft.expeditions.command.OpacSelfTestCommand;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -25,6 +26,7 @@ public class BigBangExpeditions {
         ExpeditionCommand.register(e.getDispatcher());
         DimensionStatusCommand.register(e.getDispatcher());
         ExpeditionTeleportCommand.register(e.getDispatcher());
+        OpacSelfTestCommand.register(e.getDispatcher());
         LOG.info("Registered /expedition commands");
     }
 }
