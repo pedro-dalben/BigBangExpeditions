@@ -12,24 +12,89 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Small isolated adapter for Open Parties and Claims.
- * Reflective to avoid hard compile dependency — pack may not have OPAC on dev env.
- * Fail-closed: any exception/null → unavailable → probe must REFUSE.
+ * Adapter for Open Parties and Claims (OPAC) using its PUBLIC server API:
+ * xaero.pac.common.server.api.OpenPACServerAPI#get(MinecraftServer)
+ *   .getServerClaimsManager() -> IServerClaimsManagerAPI
+ *     .get(ResourceLocation dim, int chunkX, int chunkZ) -> IPlayerChunkClaimAPI | null
+ *     .isClaimable(ResourceLocation) -> boolean (dimension-level claim permission)
+ *
+ * Verified against open-parties-and-claims-forge-1.20.1-0.25.8.jar (Goal 02 Phase 6).
+ * Reflective to avoid hard compile dependency. Fail-closed: any failure ->
+ * unavailable -> callers must REFUSE.
  */
 public final class OpacAdapter {
     private static final Logger LOG = LogManager.getLogger("BigBangExpeditions/OPAC");
-    private static final String MANAGER_CLASS = "xaero.pac.common.server.claims.ServerClaimsManager";
-    private static final String DIMENSION_SUFFIX = "xaero.pac.common.server.claims.IServerDimensionClaimsManager";
-    private static final String CLAIM_CLASS = "xaero.pac.common.claims.player.IPlayerChunkClaimAPI";
+    private static final String API_CLASS = "xaero.pac.common.server.api.OpenPACServerAPI";
 
     private OpacAdapter() {}
 
+    /** True if OPAC classes are loadable AND the public server API resolves. */
     public static boolean isOpacPresent() {
         try {
-            Class.forName(MANAGER_CLASS);
+            Class.forName(API_CLASS);
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (Throwable e) {
             return false;
+        }
+    }
+
+    /** Resolves IServerClaimsManagerAPI for a live server; empty when unavailable. */
+    private static Object resolveClaimsManager(MinecraftServer server) {
+        if (!isOpacPresent()) return null;
+        try {
+            Class<?> apiClass = Class.forName(API_CLASS);
+            Method get = apiClass.getMethod("get", MinecraftServer.class);
+            Object api = get.invoke(null, server);
+            if (api == null) return null;
+            Method scm = apiClass.getMethod("getServerClaimsManager");
+            return scm.invoke(api);
+        } catch (Throwable t) {
+            LOG.warn("OPAC API resolution failed: {}", t.toString());
+            return null;
+        }
+    }
+
+    /**
+     * True when OPAC allows claims AT ALL in the given dimension
+     * (IServerClaimsManagerAPI#isClaimable). Empty = cannot determine.
+     */
+    public static Boolean isDimensionClaimable(MinecraftServer server, ResourceLocation dimensionId) {
+        Object manager = resolveClaimsManager(server);
+        if (manager == null) return null;
+        try {
+            Method m = manager.getClass().getMethod("isClaimable", ResourceLocation.class);
+            Object r = m.invoke(manager, dimensionId);
+            return (Boolean) r;
+        } catch (NoSuchMethodException nsme) {
+            // older/newer builds without the API — treat as undeterminable
+            return null;
+        } catch (Throwable t) {
+            LOG.warn("OPAC isClaimable failed: {}", t.toString());
+            return null;
+        }
+    }
+
+    /** Claim lookup on one chunk via public API; null-safe. False on any error. */
+    private static boolean chunkClaimed(Object managerApi, ResourceLocation dim, int cx, int cz) {
+        try {
+            Method m = managerApi.getClass().getMethod("get", ResourceLocation.class, int.class, int.class);
+            Object claim = m.invoke(managerApi, dim, cx, cz);
+            return claim != null;
+        } catch (Throwable t) {
+            throw new IllegalStateException("OPAC chunk lookup failed at " + cx + "," + cz + ": " + t, t);
+        }
+    }
+
+    private static boolean chunkForceloadable(Object managerApi, ResourceLocation dim, int cx, int cz) {
+        try {
+            Method m = managerApi.getClass().getMethod("get", ResourceLocation.class, int.class, int.class);
+            Object claim = m.invoke(managerApi, dim, cx, cz);
+            if (claim == null) return false;
+            Method fl = claim.getClass().getMethod("isForceloadable");
+            Object r = fl.invoke(claim);
+            return (Boolean) r;
+        } catch (Throwable t) {
+            throw new IllegalStateException("OPAC forceload lookup failed at " + cx + "," + cz + ": " + t, t);
         }
     }
 
@@ -38,104 +103,29 @@ public final class OpacAdapter {
         if (level == null) return ClaimInspectionResult.unavailable("dimension unavailable: " + bounds.dimension());
         if (!isOpacPresent()) return ClaimInspectionResult.unavailable("OPAC not present");
 
+        Object manager = resolveClaimsManager(server);
+        if (manager == null) return ClaimInspectionResult.unavailable("claims manager unavailable");
+
+        int intersecting = 0;
+        int forceloads = 0;
+        List<String> hitSamples = new ArrayList<>();
+        ResourceLocation dimId = level.dimension().location();
+
         try {
-            Class<?> managerClass = Class.forName(MANAGER_CLASS);
-            // ServerClaimsManager.get(MinecraftServer)
-            Method get = null;
-            for (Method m : managerClass.getMethods()) {
-                if (m.getName().equals("get") && m.getParameterCount() == 1 && m.getParameterTypes()[0] == MinecraftServer.class) {
-                    get = m;
-                    break;
-                }
-            }
-            if (get == null) return ClaimInspectionResult.unavailable("OPAC API get(MinecraftServer) not found");
-
-            Object manager = get.invoke(null, server);
-            if (manager == null) return ClaimInspectionResult.unavailable("ServerClaimsManager.get returned null (not loaded)");
-
-            // manager.getDimension(ResourceLocation)
-            Method getDimension = null;
-            for (Method m : manager.getClass().getMethods()) {
-                if (m.getName().equals("getDimension") && m.getParameterCount() == 1 && m.getParameterTypes()[0] == ResourceLocation.class) {
-                    getDimension = m;
-                    break;
-                }
-            }
-            if (getDimension == null) return ClaimInspectionResult.unavailable("getDimension not found");
-
-            ResourceLocation dimId = level.dimension().location();
-            Object dimManager = getDimension.invoke(manager, dimId);
-            if (dimManager == null) return ClaimInspectionResult.unavailable("dimension claims manager null for " + dimId);
-
-            // Iterate chunks in bounds: dimManager.getClaim(int x, int z) or get(int,int)
-            // Try common signatures
-            Method getClaim = findGetClaim(dimManager.getClass());
-            if (getClaim == null) return ClaimInspectionResult.unavailable("getClaim(int,int) not found on dimension manager");
-
-            int intersecting = 0;
-            int forceloads = 0;
-            List<String> hitSamples = new ArrayList<>();
-
             for (int cx = bounds.minChunkX(); cx <= bounds.maxChunkX(); cx++) {
                 for (int cz = bounds.minChunkZ(); cz <= bounds.maxChunkZ(); cz++) {
-                    try {
-                        Object claim = getClaim.invoke(dimManager, cx, cz);
-                        if (claim != null) {
-                            // claim may be IPlayerChunkClaimAPI with playerId
-                            // treat non-null as intersecting (party/personal both count)
-                            intersecting++;
-                            if (hitSamples.size() < 5) {
-                                hitSamples.add("claim at " + cx + "," + cz + " -> " + claim.getClass().getSimpleName());
-                            }
-                        }
-                    } catch (Exception ex) {
-                        LOG.warn("OPAC getClaim failed at {},{}: {}", cx, cz, ex.toString());
-                        return ClaimInspectionResult.unavailable("OPAC getClaim exception at " + cx + "," + cz + ": " + ex.getMessage());
+                    if (chunkClaimed(manager, dimId, cx, cz)) {
+                        intersecting++;
+                        if (hitSamples.size() < 5) hitSamples.add("claim at " + cx + "," + cz);
                     }
-                    // Forceload check if available
-                    Method getForceload = findForceload(dimManager.getClass());
-                    if (getForceload != null) {
-                        try {
-                            Object fl = getForceload.invoke(dimManager, cx, cz);
-                            if (fl != null && Boolean.TRUE.equals(fl)) forceloads++;
-                            else if (fl != null && !fl.equals(Boolean.FALSE) && !(fl instanceof Boolean)) forceloads++; // non-boolean marker
-                        } catch (Exception ignore) {}
-                    }
+                    if (chunkForceloadable(manager, dimId, cx, cz)) forceloads++;
                 }
             }
+        } catch (Throwable t) {
+            LOG.error("OPAC inspection failed: {}", t.toString());
+            return ClaimInspectionResult.unavailable("exception: " + t.getMessage());
+        }
 
-            ClaimInspectionResult r = ClaimInspectionResult.available(intersecting, forceloads, hitSamples);
-            return r;
-        } catch (Exception e) {
-            LOG.error("OPAC inspection failed: {}", e.toString(), e);
-            return ClaimInspectionResult.unavailable("exception: " + e.getMessage());
-        }
-    }
-
-    private static Method findGetClaim(Class<?> c) {
-        for (Method m : c.getMethods()) {
-            if (m.getName().equals("getClaim") || m.getName().equals("get") || m.getName().equals("getClaimAt")) {
-                if (m.getParameterCount() == 2 && m.getParameterTypes()[0] == int.class && m.getParameterTypes()[1] == int.class) {
-                    return m;
-                }
-            }
-        }
-        // also try "getClaim" with generic
-        for (Method m : c.getMethods()) {
-            if (m.getParameterCount() == 2) {
-                Class<?> p0 = m.getParameterTypes()[0];
-                Class<?> p1 = m.getParameterTypes()[1];
-                if (p0 == int.class && p1 == int.class && m.getName().toLowerCase().contains("claim")) return m;
-            }
-        }
-        return null;
-    }
-
-    private static Method findForceload(Class<?> c) {
-        for (Method m : c.getMethods()) {
-            String n = m.getName().toLowerCase();
-            if ((n.contains("force") || n.contains("forceload")) && m.getParameterCount() == 2) return m;
-        }
-        return null;
+        return ClaimInspectionResult.available(intersecting, forceloads, hitSamples);
     }
 }
