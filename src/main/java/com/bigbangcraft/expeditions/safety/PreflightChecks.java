@@ -93,26 +93,40 @@ public final class PreflightChecks {
     }
 
     /**
-     * Building policy (Policy A): the LIVE block-entity census must not exceed
-     * the captured baseline for any type. Extra BEs of ANY type mean player
-     * construction/storage -> refuse. Missing types are expected (players may
-     * have consumed worldgen content).
+     * Building policy gate (Goal 04 rework).
+     *
+     * SECTOR scope (staging pipeline): the live block-entity census must not
+     * exceed baseline for ANY type — extras mean player construction and hard-
+     * refuse, exactly as in Goal 02/03.
+     *
+     * DIMENSION scope (production whole-zone turnover): extras are EXPECTED
+     * temporary-territory content. They never silently pass: without an
+     * explicit operator acknowledgment bound to the exact delta the reset is
+     * refused (PURGE_ACK_REQUIRED); with it, a quantified warning is recorded.
      */
     public static void checkNoPlayerAdditions(ResetPreflightResult r,
                                               Map<String, Integer> baselineByType,
-                                              Map<String, Integer> liveByType) {
-        Map<String, Integer> extra = new TreeMap<>();
-        for (Map.Entry<String, Integer> e : liveByType.entrySet()) {
-            int base = baselineByType.getOrDefault(e.getKey(), 0);
-            if (e.getValue() > base) {
-                extra.put(e.getKey(), e.getValue() - base);
+                                              Map<String, Integer> liveByType,
+                                              String scope,
+                                              boolean purgeAcknowledged) {
+        com.bigbangcraft.expeditions.reset.PurgeManifest manifest =
+                com.bigbangcraft.expeditions.reset.PurgeManifest.of(baselineByType, liveByType);
+        if (manifest.isEmpty()) return;
+
+        if (com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION.equals(scope)) {
+            if (!purgeAcknowledged) {
+                r.error("PURGE_ACK_REQUIRED", "player additions vs baseline: "
+                        + manifest.summarize(5)
+                        + " — confirm purge with manifest " + manifest.hash().substring(0, 12));
+            } else {
+                r.warn("PURGE_ACKNOWLEDGED", "destroying player additions: "
+                        + manifest.summarize(5));
             }
+            return;
         }
-        if (!extra.isEmpty()) {
-            StringBuilder sb = new StringBuilder("player-added block entities vs baseline:");
-            extra.forEach((k, v) -> sb.append(" ").append(k).append("(+").append(v).append(")"));
-            r.error("PLAYER_ADDITIONS", sb.toString());
-        }
+        StringBuilder sb = new StringBuilder("player-added block entities vs baseline:");
+        manifest.extras().forEach((k, v) -> sb.append(' ').append(k).append("(+").append(v).append(')'));
+        r.error("PLAYER_ADDITIONS", sb.toString());
     }
 
     /** Loot classification gate: every item type seen must be classified. */

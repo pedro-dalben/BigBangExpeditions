@@ -46,6 +46,8 @@ public final class AuthorizationService {
         public long nowEpochMs;
         public long ttlMs = DEFAULT_TTL_MS;
         public String actor = "";
+        /** Goal 04: operator confirmed the quantified purge manifest (DIMENSION scope). */
+        public boolean purgeAcknowledged = false;
     }
 
     public static final class IssueOutcome {
@@ -73,6 +75,8 @@ public final class AuthorizationService {
         pi.baselineByType = in.baselineByType;
         pi.lootPolicy = in.lootPolicy;
         pi.savedDataClassification = in.savedDataClassification;
+        pi.scope = in.scope;
+        pi.purgeAcknowledged = in.purgeAcknowledged;
         out.preflight = new ResetPreflightEngine().validate(pi);
         if (!out.preflight.passed()) {
             out.refusals.addAll(out.preflight.refusalReasons());

@@ -60,7 +60,11 @@ public final class LifecycleCommand {
                                 .executes(ctx -> dryRun(ctx.getSource())))
                         .then(Commands.literal("issue-authorization")
                                 .requires(s -> s.hasPermission(3))
-                                .executes(ctx -> issueAuthorization(ctx.getSource())))
+                                .executes(ctx -> issueAuthorization(ctx.getSource(), null))
+                                .then(Commands.argument("purgeManifestHash",
+                                                com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .executes(ctx -> issueAuthorization(ctx.getSource(),
+                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "purgeManifestHash")))))
                         .then(Commands.literal("health")
                                 .executes(ctx -> health(ctx.getSource()))));
     }
@@ -314,11 +318,37 @@ public final class LifecycleCommand {
             org.apache.logging.log4j.LogManager.getLogger("BigBangExpeditions/Lifecycle");
 
     /** LOCKED -> PREFLIGHT -> RESET_READY with a persisted authorization artifact. */
-    private static int issueAuthorization(CommandSourceStack src) {
+    private static int issueAuthorization(CommandSourceStack src, String purgeHashArg) {
         String actor = src.getTextName();
         RuntimeServices services = svc(src);
         try {
             var in = com.bigbangcraft.expeditions.reset.ProductionResetFlow.collectInputs(src.getServer());
+
+            // Goal 04: DIMENSION-scope turnover requires explicit purge confirmation
+            if (com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION.equals(in.scope)) {
+                var manifest = com.bigbangcraft.expeditions.reset.PurgeManifest.of(
+                        in.baselineByType, in.live == null ? java.util.Map.of() : in.live.blockEntitiesByType());
+                if (!manifest.isEmpty()) {
+                    if (purgeHashArg == null || purgeHashArg.isBlank()) {
+                        String msg = "PURGE_ACK_REQUIRED: player additions " + manifest.summarize(5)
+                                + " — re-run with purge manifest hash "
+                                + manifest.hash().substring(0, 12);
+                        send(src, "REFUSED: " + msg);
+                        refuse(src, services, "AUTH_ISSUE", msg);
+                        return 0;
+                    }
+                    String expected = manifest.hash();
+                    if (!expected.startsWith(purgeHashArg.toLowerCase())) {
+                        String msg = "purge manifest hash mismatch — world changed since scan; "
+                                + "current manifest is " + expected.substring(0, 12);
+                        send(src, "REFUSED: " + msg);
+                        refuse(src, services, "AUTH_ISSUE", msg);
+                        return 0;
+                    }
+                    in.purgeAcknowledged = true;
+                }
+            }
+
             var outcome = com.bigbangcraft.expeditions.reset.AuthorizationService.issue(in);
 
             if (!outcome.ok()) {

@@ -93,6 +93,59 @@ class PreflightEngineTest {
         assertTrue(r.passed(), r.refusalReasons().toString());
     }
 
+    // ---- Goal 04: DIMENSION scope turnover ----------------------------------
+
+    @Test
+    void dimensionScopeWithoutAckRefusesWithManifestHash() {
+        ResetPreflightEngine.ResetPlanInput in = baseInput();
+        in.scope = com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION;
+        in.baselineByType = Map.of("minecraft:chest", 10);
+        in.live = stubLive(0, 0, 0,
+                new HashMap<>(Map.of("minecraft:chest", 12)), false);
+        ResetPreflightResult r = new ResetPreflightEngine().validate(in);
+        assertFalse(r.passed());
+        String reason = String.join("\n", r.refusalReasons());
+        assertTrue(reason.contains("PURGE_ACK_REQUIRED"), reason);
+        assertFalse(reason.contains("PLAYER_ADDITIONS"), reason);
+    }
+
+    @Test
+    void dimensionScopeWithAcknowledgedPurgeWarnsAndPasses() {
+        ResetPreflightEngine.ResetPlanInput in = baseInput();
+        in.scope = com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION;
+        in.purgeAcknowledged = true;
+        in.baselineByType = Map.of("minecraft:chest", 10);
+        in.live = stubLive(0, 0, 0,
+                new HashMap<>(Map.of("minecraft:chest", 12)), false);
+        ResetPreflightResult r = new ResetPreflightEngine().validate(in);
+        assertTrue(r.passed(), () -> "unexpected refusals: " + r.refusalReasons());
+        assertTrue(r.issues().stream().anyMatch(i -> i.code.equals("PURGE_ACKNOWLEDGED")));
+    }
+
+    @Test
+    void claimsRemainHardRefusalEvenWithPurgeAck() {
+        ResetPreflightEngine.ResetPlanInput in = baseInput();
+        in.scope = com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION;
+        in.purgeAcknowledged = true;
+        in.baselineByType = Map.of();
+        in.live = stubLive(0, 3, 0, Map.of(), false);
+        ResetPreflightResult r = new ResetPreflightEngine().validate(in);
+        assertFalse(r.passed());
+        assertTrue(r.refusalReasons().stream().anyMatch(s -> s.contains("CLAIMS_INTERSECT")));
+    }
+
+    @Test
+    void playersInsideRemainHardRefusalEvenWithPurgeAck() {
+        ResetPreflightEngine.ResetPlanInput in = baseInput();
+        in.scope = com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_DIMENSION;
+        in.purgeAcknowledged = true;
+        in.baselineByType = Map.of();
+        in.live = stubLive(1, 0, 0, Map.of(), false);
+        ResetPreflightResult r = new ResetPreflightEngine().validate(in);
+        assertFalse(r.passed());
+        assertTrue(r.refusalReasons().stream().anyMatch(s -> s.contains("PLAYERS_INSIDE")));
+    }
+
     @Test
     void wrongStateRefuses() {
         ResetPreflightEngine.ResetPlanInput in = baseInput();

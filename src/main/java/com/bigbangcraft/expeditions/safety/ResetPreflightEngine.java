@@ -27,7 +27,8 @@ public final class ResetPreflightEngine {
             if (r.passed() || true) { // always aggregate; order fixed for readability
                 PreflightChecks.checkPlayers(r, input.live);
                 PreflightChecks.checkClaims(r, input.live);
-                PreflightChecks.checkNoPlayerAdditions(r, input.baselineByType, input.live.blockEntitiesByType());
+                PreflightChecks.checkNoPlayerAdditions(r, input.baselineByType,
+                        input.live.blockEntitiesByType(), input.scope, input.purgeAcknowledged);
             }
         } else {
             r.warn("NO_LIVE_SCAN", "live state not attached — offline-only validation");
@@ -59,5 +60,9 @@ public final class ResetPreflightEngine {
         public Map<String, Integer> baselineByType = Map.of();
         public com.bigbangcraft.expeditions.loot.LootPolicy lootPolicy;
         public Map<String, String> savedDataClassification;
+        /** Goal 04: reset scope — SECTOR keeps strict no-additions, DIMENSION allows purge-ack. */
+        public String scope = com.bigbangcraft.expeditions.reset.ResetAuthorization.SCOPE_SECTOR;
+        /** Goal 04: operator confirmed destroying quantified player additions (DIMENSION scope). */
+        public boolean purgeAcknowledged = false;
     }
 }
