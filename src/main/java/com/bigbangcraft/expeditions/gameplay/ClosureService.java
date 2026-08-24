@@ -35,9 +35,29 @@ public final class ClosureService {
     /** Extraction sequence re-entrancy guard (tick handler runs on main thread). */
     private static boolean extracting;
 
+    /**
+     * Idle fast-path: the tick handler must NOT touch disk every second while
+     * no closing is scheduled. The flag is armed by the close order and by
+     * boot recovery (restart mid-CLOSING), disarmed when extraction finishes
+     * or the schedule is aborted.
+     */
+    private static volatile boolean scheduleActive;
+
+    @net.minecraftforge.eventbus.api.SubscribeEvent
+    public static void onServerStarted(net.minecraftforge.event.server.ServerStartedEvent e) {
+        try {
+            var r = RuntimeServices.get(e.getServer()).lifecycle().current();
+            scheduleActive = r.status == com.bigbangcraft.expeditions.lifecycle.LifecycleState.CLOSING
+                    && r.closingDeadlineEpochMs > 0;
+        } catch (Exception ex) {
+            LOG.warn("closing-schedule boot probe failed: {}", ex.toString());
+        }
+    }
+
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
+        if (!scheduleActive) return;
         // 1-second cadence — countdown UX does not need per-tick precision
         if ((e.getServer().getTickCount() % 20) != 0) return;
         try {
@@ -50,7 +70,11 @@ public final class ClosureService {
     private static void tick(MinecraftServer server) throws IOException {
         RuntimeServices services = RuntimeServices.get(server);
         LifecycleRecord r = services.lifecycle().current();
-        if (r.status != LifecycleState.CLOSING || r.closingDeadlineEpochMs <= 0) return;
+        if (r.status != com.bigbangcraft.expeditions.lifecycle.LifecycleState.CLOSING
+                || r.closingDeadlineEpochMs <= 0) {
+            scheduleActive = false;
+            return;
+        }
 
         GameplayConfig config = loadConfig(server);
         long now = System.currentTimeMillis();
@@ -85,6 +109,7 @@ public final class ClosureService {
         services.lifecycle().transition(LifecycleState.EVACUATING, actor,
                 "evacuated " + evacuated + " player(s)");
         services.lifecycle().clearClosingSchedule();
+        scheduleActive = false;
 
         var level = server.getLevel(LostCitiesAdapter.expeditionDimensionKey());
         int stillInside = level == null ? 0 : EvacuationService.playersInside(level).size();
@@ -142,6 +167,7 @@ public final class ClosureService {
         } catch (IOException e) {
             return "persist error: " + e.getMessage();
         }
+        scheduleActive = true;
         Component line = Component.literal(Translations.t("bbe.closing.started", duration));
         for (var p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
@@ -161,6 +187,7 @@ public final class ClosureService {
         try {
             var err = services.lifecycle().abortClosing(actor);
             if (err.isEmpty()) {
+                scheduleActive = false;
                 Broadcast.announce(server, loadConfig(server), "bbe.status.line",
                         Translations.t("bbe.state.open"));
             }

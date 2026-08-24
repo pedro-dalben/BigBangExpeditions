@@ -75,11 +75,18 @@ public final class JourneyCommand {
         }
         int chunkX = player.chunkPosition().x;
         int chunkZ = player.chunkPosition().z;
-        SectorRegistry registry = new SectorRegistry(BbeLayout.sectorsFile(player.getServer()));
-        String district = SectorLocator.locate(registry.list(),
-                LostCitiesAdapter.expeditionDimensionId().toString(), chunkX, chunkZ)
-                .map(r -> r.displayName == null || r.displayName.isBlank() ? r.id : r.displayName)
-                .orElseGet(() -> Translations.t("bbe.where.wilderness"));
+        String district;
+        try {
+            SectorRegistry registry = new SectorRegistry(BbeLayout.sectorsFile(player.getServer()));
+            district = SectorLocator.locate(registry.list(),
+                    LostCitiesAdapter.expeditionDimensionId().toString(), chunkX, chunkZ)
+                    .map(r -> r.displayName == null || r.displayName.isBlank() ? r.id : r.displayName)
+                    .orElseGet(() -> Translations.t("bbe.where.wilderness"));
+        } catch (Exception corruptOrMissing) {
+            // fail-open for a READ-ONLY convenience command: show wilderness
+            // rather than erroring; ops tooling reports registry corruption loudly
+            district = Translations.t("bbe.where.wilderness");
+        }
         ExpeditionAccessService.send(player, "bbe.where.format",
                 district,
                 (int) Math.floor(player.getX()),
