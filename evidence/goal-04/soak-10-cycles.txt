@@ -1,0 +1,11 @@
+cycle=1 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=2 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=3 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=4 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=5 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=6 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=7 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=8 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=9 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+cycle=10 open=OK close-start=OK post-deadline[status: LOCKED (entry BLOCKED)] -> CYCLE_OK
+SOAK RESULT: 10/10 cycles passed

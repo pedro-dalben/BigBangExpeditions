@@ -1,0 +1,19 @@
+=== Expedition lifecycle ===
+status: LOCKED (entry BLOCKED)
+generation: 1
+activeAuthorization: 05e5d0ce-5a98-4f8d-90ee-394304cafd83
+lastValidationResult: PASS
+lastChange: dimension locked
+opened: 1787589850317  lastReset: 1787589850317
+recent: 1787599767054 EVACUATING->LOCKED by=closing-schedule dimension locked
+recent: 1787599852770 LOCKED->OPEN by=Rcon validated reopen
+recent: 1787599922147 OPEN->CLOSING by=Rcon closing scheduled until 1787599982147
+recent: 1787599983050 CLOSING->EVACUATING by=closing-schedule evacuated 0 player(s)
+recent: 1787599983054 EVACUATING->LOCKED by=closing-schedule dimension locked
+
+{"tsEpochMs":1787599852771,"event":"LIFECYCLE_OPEN","actor":"Rcon","fromState":"LOCKED","toState":"OPEN","outcome":"OK","durationMs":-1,"detail":{}}
+{"tsEpochMs":1787599922147,"event":"CLOSING_STARTED","actor":"Rcon","outcome":"OK","durationMs":-1,"detail":{"deadlineEpochMs":"1787599982147","durationMinutes":"1"}}
+{"tsEpochMs":1787599922147,"event":"LIFECYCLE_CLOSE","actor":"Rcon","fromState":"OPEN","toState":"CLOSING","outcome":"OK","durationMs":0,"detail":{"mode":"timed"}}
+{"tsEpochMs":1787599923048,"event":"CLOSING_WARNING","actor":"closing-schedule","outcome":"OK","durationMs":-1,"detail":{"threshold":"t-1m"}}
+{"tsEpochMs":1787599983054,"event":"LIFECYCLE_CLOSE","actor":"closing-schedule","fromState":"CLOSING","toState":"LOCKED","outcome":"OK","durationMs":6,"detail":{"evacuated":"0"}}
+{"tsEpochMs":1787600139662,"event":"OPENING_ANNOUNCED","actor":"lifecycle","outcome":"OK","durationMs":-1,"detail":{"generation":"1"}}

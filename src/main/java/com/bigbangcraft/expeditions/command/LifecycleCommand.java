@@ -58,6 +58,9 @@ public final class LifecycleCommand {
                                 .then(Commands.argument("reason", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
                                         .executes(ctx -> recover(ctx.getSource(),
                                                 com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "reason")))))
+                        .then(Commands.literal("cancel-reset")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> cancelReset(ctx.getSource())))
                         .then(Commands.literal("dryrun")
                                 .executes(ctx -> dryRun(ctx.getSource())))
                         .then(Commands.literal("issue-authorization")
@@ -274,6 +277,33 @@ public final class LifecycleCommand {
     }
 
     /** Explicit operator recovery from FAILED/RECOVERY_REQUIRED to LOCKED. */
+    /** Goal 04: abort an issued-but-not-executed authorization window. */
+    private static int cancelReset(CommandSourceStack src) {
+        String actor = src.getTextName();
+        RuntimeServices services = svc(src);
+        try {
+            var ledger = new com.bigbangcraft.expeditions.reset.AuthorizationLedger(
+                    com.bigbangcraft.expeditions.core.BbeLayout.authLedgerFile(src.getServer()));
+            String err = services.lifecycle().cancelReset(actor, authId -> {
+                try {
+                    return ledger.revoke(authId, actor + " (cancel-reset)", System.currentTimeMillis())
+                            .orElse(null);
+                } catch (IOException ie) {
+                    return "ledger io: " + ie.getMessage();
+                }
+            });
+            if (err != null) { refuse(src, services, "LIFECYCLE_CANCEL_RESET", err); return 0; }
+            services.audit().record(AuditEvent.of("LIFECYCLE_CANCEL_RESET", actor)
+                    .states("RESET_WINDOW", LifecycleState.LOCKED.name()).outcome("OK"));
+            syncSector(src, LifecycleState.LOCKED);
+            send(src, "Authorization canceled — status LOCKED. Artifact revoked if it was still ISSUED.");
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("cancel-reset failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
     private static int recover(CommandSourceStack src, String reason) {
         String actor = src.getTextName();
         try {

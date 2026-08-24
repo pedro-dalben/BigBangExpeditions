@@ -11,7 +11,6 @@
   "bbe.state.validating": "TEMPORARIAMENTE INDISPONÍVEL",
   "bbe.state.failed": "TEMPORARIAMENTE INDISPONÍVEL",
   "bbe.state.recovery_required": "TEMPORARIAMENTE INDISPONÍVEL",
-
   "bbe.entry.success": "☢ Entrada registrada na zona de expedição [{0}, {1}, {2}].",
   "bbe.entry.return_hint": "Use /expedition leave para retornar ao ponto seguro.",
   "bbe.entry.warning.build": "AVISO: nada do que você construir ou guardar aqui sobreviverá ao fim da zona.",
@@ -22,36 +21,29 @@
   "bbe.entry.blocked.state": "Entrada negada: expedição {0}.",
   "bbe.entry.blocked.unreadable": "Entrada negada: status da expedição ilegível (falha segura).",
   "bbe.entry.already_inside": "Você já está dentro da zona de expedição.",
-
   "bbe.leave.success": "Retorno confirmado: {0}.",
   "bbe.leave.fallback_spawn": "Ponto de retorno perdido — você foi levado ao abrigo central.",
   "bbe.leave.stale_dimension": "Destino de retorno não existe mais — levado ao abrigo central.",
   "bbe.leave.not_inside": "Você não está dentro da zona de expedição.",
-
   "bbe.login.evicted.maintenance": "Você desconectou dentro da expedição durante a interdição — levado ao ponto seguro.",
   "bbe.login.recovered.new_zone": "A zona que você explorava foi interditada entre sessões. Você voltou ao ponto seguro.",
   "bbe.login.transfer_interrupted": "Transferência interrompida — posição restaurada com segurança.",
   "bbe.death.respawn_redirected": "Seu acampamento na expedição não serve como ponto de renascimento. Você acordou no mundo persistente.",
-
   "bbe.closing.warn.minutes": "☢ INTERDIÇÃO DA EXPEDIÇÃO EM {0} MINUTOS. Retire-se com o que carrega — nada no território sobreviverá.",
   "bbe.closing.warn.one_minute": "☢ INTERDIÇÃO DA EXPEDIÇÃO EM 1 MINUTO.",
   "bbe.closing.warn.seconds": "☢ INTERDIÇÃO IMINENTE: {0} segundos.",
   "bbe.closing.now": "☢ Expedição interditada. Todos os sobreviventes foram extraídos.",
+  "bbe.evacuation.moved": "☢ A expedição foi interditada para manutenção — você foi levado ao abrigo central.",
   "bbe.closing.started": "☢ Ordem de interdição emitida. Início da extração em {0} minutos.",
-
   "bbe.opening.title": "☢ NOVA ZONA DE EXPEDIÇÃO DISPONÍVEL",
   "bbe.opening.body": "Reconhecimento confirmou novas rotas pela zona urbana. Hospitais, delegacias, depósitos e edifícios abandonados estão acessíveis novamente. Entre por sua conta e risco. [Zona nº {0}]",
-
   "bbe.where.format": "Setor: {0} | Posição: {1}, {2}, {3}",
   "bbe.where.wilderness": "Área não mapeada",
   "bbe.where.not_inside": "Você não está dentro da zona de expedição.",
-
   "bbe.status.line": "Expedição: {0}",
   "bbe.status.generation": "Ciclo da zona: nº {0}",
-
   "bbe.build.policy_line": "Regra da zona: construção temporária permitida; indústria e estoque permanente proibidos.",
   "bbe.claim.line": "Reivindicações desativadas na expedição — território temporário sob controle militar.",
-
   "bbe.admin.players_inside": "Sobreviventes na expedição: {0}",
   "bbe.admin.none_inside": "Nenhum sobrevivente na expedição.",
   "bbe.error.generic": "Operação falhou. Tente novamente.",

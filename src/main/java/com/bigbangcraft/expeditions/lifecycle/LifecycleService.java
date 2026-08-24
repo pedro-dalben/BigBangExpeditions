@@ -139,14 +139,13 @@ public final class LifecycleService {
         if (r.status != LifecycleState.CLOSING) {
             return Optional.of("not closing (current: " + r.status + ")");
         }
-        long now = System.currentTimeMillis();
-        r.closingDeadlineEpochMs = 0;
-        r.lastClosingWarnMinutes = -1;
         Optional<String> err = transition(LifecycleState.OPEN, by, "closing aborted");
-        if (err.isPresent()) {
-            // restore schedule fields before surfacing the failure
-            r.closingDeadlineEpochMs = 0;
-            store.save(r);
+        if (err.isEmpty()) {
+            // transition() reloaded+saved its own copy — clear schedule AFTER it
+            LifecycleRecord fresh = store.load();
+            fresh.closingDeadlineEpochMs = 0;
+            fresh.lastClosingWarnMinutes = -1;
+            store.save(fresh);
         }
         return err;
     }
@@ -165,6 +164,40 @@ public final class LifecycleService {
         LifecycleRecord r = store.load();
         r.lastClosingWarnMinutes = minutesThreshold;
         r.updatedAtEpochMs = System.currentTimeMillis();
+        store.save(r);
+    }
+
+    /**
+     * Goal 04: operator aborts an issued-but-not-executed authorization
+     * (PREFLIGHT/RESET_READY → LOCKED). The destructive phase runs offline;
+     * this only unwinds the in-server preparation window.
+     *
+     * @return error message, or null on success
+     */
+    public String cancelReset(String actor, java.util.function.UnaryOperator<String> ledgerRevoker) throws IOException {
+        LifecycleRecord r = store.load();
+        if (r.status != LifecycleState.PREFLIGHT && r.status != LifecycleState.RESET_READY) {
+            return "cancel applies to PREFLIGHT/RESET_READY only (current: " + r.status + ")";
+        }
+        long now = System.currentTimeMillis();
+        String boundAuth = r.activeAuthId;
+        String revokeError = null;
+        if (!boundAuth.isEmpty() && ledgerRevoker != null) {
+            revokeError = ledgerRevoker.apply(boundAuth);
+        }
+        r.activeAuthId = "";
+        recordTransitionAndSave(r, now, LifecycleState.LOCKED, actor,
+                "authorization canceled" + (revokeError == null ? "" : " (ledger revoke issue: " + revokeError + ")"));
+        return null;
+    }
+
+    private void recordTransitionAndSave(LifecycleRecord r, long now, LifecycleState target,
+                                         String by, String reason) throws IOException {
+        LifecycleState from = r.status;
+        r.status = target;
+        r.updatedAtEpochMs = now;
+        r.lastChangeReason = reason;
+        r.recordTransition(now, from, target, by, reason);
         store.save(r);
     }
 }

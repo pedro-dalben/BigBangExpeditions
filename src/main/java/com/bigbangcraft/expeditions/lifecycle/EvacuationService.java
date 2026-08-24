@@ -58,8 +58,8 @@ public final class EvacuationService {
             if (action.type() == EvacuationPlan.ActionType.TELEPORT_OUT && p != null) {
                 BlockPos spawn = overworld.getSharedSpawnPos();
                 p.teleportTo(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
-                p.sendSystemMessage(Component.literal(
-                        "Expedition closed for maintenance — you were moved to overworld spawn."));
+                p.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        com.bigbangcraft.expeditions.i18n.Translations.t("bbe.evacuation.moved")));
             }
             if (p != null) {
                 p.getPersistentData().remove(INSIDE_MARKER);

@@ -32,6 +32,46 @@ class LifecycleServiceTest {
     }
 
     @Test
+    void cancelResetUnwindsAuthorizationWindowAndRevokesArtifact() throws IOException {
+        LifecycleService s2 = service();
+        s2.transition(LifecycleState.CLOSING, "op", "close");
+        s2.transition(LifecycleState.EVACUATING, "op", "evacuated");
+        s2.transition(LifecycleState.LOCKED, "op", "locked");
+        s2.transition(LifecycleState.PREFLIGHT, "op", "preflight ok");
+        s2.setActiveAuth("test-auth", "op");
+        java.util.List<String> revoked = new java.util.ArrayList<>();
+        String err = s2.cancelReset("op", authId -> { revoked.add(authId); return null; });
+        org.junit.jupiter.api.Assertions.assertNull(err);
+        org.junit.jupiter.api.Assertions.assertEquals(LifecycleState.LOCKED, s2.current().status);
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("test-auth"), revoked);
+        org.junit.jupiter.api.Assertions.assertTrue(s2.current().activeAuthId.isEmpty());
+    }
+
+    @Test
+    void cancelResetRefusedOutsideAuthorizationWindow() throws IOException {
+        LifecycleService s = service();
+        String err = s.cancelReset("op", a -> null);
+        org.junit.jupiter.api.Assertions.assertNotNull(err);
+        org.junit.jupiter.api.Assertions.assertTrue(err.contains("OPEN"));
+    }
+
+    @Test
+    void timedClosingSchedulePersistsAndAbortsCleanly() throws IOException {
+        LifecycleService s = service();
+        org.junit.jupiter.api.Assertions.assertTrue(s.startClosing(System.currentTimeMillis() + 60_000, "op").isEmpty());
+        var rec = s.current();
+        org.junit.jupiter.api.Assertions.assertEquals(LifecycleState.CLOSING, rec.status);
+        org.junit.jupiter.api.Assertions.assertTrue(rec.closingDeadlineEpochMs > 0);
+        s.markClosingWarned(1);
+        org.junit.jupiter.api.Assertions.assertEquals(1, s.current().lastClosingWarnMinutes);
+        org.junit.jupiter.api.Assertions.assertTrue(s.abortClosing("op").isEmpty());
+        rec = s.current();
+        org.junit.jupiter.api.Assertions.assertEquals(LifecycleState.OPEN, rec.status);
+        org.junit.jupiter.api.Assertions.assertEquals(0, rec.closingDeadlineEpochMs);
+        org.junit.jupiter.api.Assertions.assertEquals(-1, rec.lastClosingWarnMinutes);
+    }
+
+    @Test
     void reopenWithoutValidationPassRefused() throws IOException {
         LifecycleService s = service();
         drive(s, "op");
