@@ -1,0 +1,12 @@
+{
+  "type": "bigbangexpeditions:expedition_type",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "minecraft:overworld",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "preset": "overworld"
+    }
+  },
+  "forge:use_server_seed": true
+}

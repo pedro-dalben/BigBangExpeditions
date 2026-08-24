@@ -16,7 +16,7 @@ run/
 world/
 world_nether/
 world_the_end/
-bigbangexpeditions/
+/bigbangexpeditions/
 # OS
 .DS_Store
 Thumbs.db
