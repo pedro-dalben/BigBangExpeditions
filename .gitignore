@@ -1,0 +1,22 @@
+.gradle/
+build/
+out/
+bin/
+run/
+logs/
+.sourcelife/
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+classes/
+# Minecraft run dirs
+run/
+world/
+world_nether/
+world_the_end/
+bigbangexpeditions/
+# OS
+.DS_Store
+Thumbs.db

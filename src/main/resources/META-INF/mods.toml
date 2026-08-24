@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+[[mods]]
+modId="bigbangexpeditions"
+version="${mod_version}"
+displayName="BigBangExpeditions"
+updateJSONURL=""
+displayURL=""
+logoFile=""
+credits="DeceasedCraft Team"
+authors="BigBangCraft"
+description="Renewable exploration validation harness for Lost Cities. Read-only diagnostics for sector reset safety."
+
+[[dependencies.bigbangexpeditions]]
+modId="forge"
+mandatory=true
+versionRange="[47.4.0,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.bigbangexpeditions]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"
