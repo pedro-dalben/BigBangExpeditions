@@ -65,6 +65,17 @@ class AuthorizationLedgerTest {
     }
 
     @Test
+    void issuedForFiltersBySectorAndStatus() throws IOException {
+        AuthorizationLedger l = new AuthorizationLedger(file());
+        l.recordIssued("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee01", 1, "b04", "admin", 1L);
+        l.recordIssued("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee02", 2, "b04", "admin", 2L);
+        l.recordIssued("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee03", 3, "other", "admin", 3L);
+        assertEquals(2, l.issuedFor("b04").size());
+        l.consume("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee01", "x", 4L);
+        assertEquals(java.util.List.of("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeee02"), l.issuedFor("b04"));
+    }
+
+    @Test
     void persistsAcrossInstances() throws IOException {
         String id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeef0";
         new AuthorizationLedger(file()).recordIssued(id, 7, "admin", 1L);

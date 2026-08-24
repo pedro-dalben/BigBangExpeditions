@@ -146,4 +146,29 @@ public final class AuthorizationService {
         out.artifact = a;
         return out;
     }
+
+    /**
+     * Idempotency policy: at most one ISSUED artifact per sector+generation.
+     * Issuing a new artifact REVOKES all prior ISSUED ones for the same sector —
+     * an operator can never be confused about which authorization is live, and
+     * stale artifacts cannot linger.
+     *
+     * @return refusal message or empty on success.
+     */
+    public static java.util.Optional<String> supersedePriorIssued(AuthorizationLedger ledger,
+                                                                  String sectorId,
+                                                                  String keepAuthId,
+                                                                  String by,
+                                                                  long nowEpochMs) {
+        try {
+            for (String prior : ledger.issuedFor(sectorId)) {
+                if (prior.equals(keepAuthId)) continue;
+                var err = ledger.revoke(prior, by + " (superseded)", nowEpochMs);
+                if (err.isPresent()) return err;
+            }
+            return java.util.Optional.empty();
+        } catch (Exception e) {
+            return java.util.Optional.of("supersede failed: " + e.getMessage());
+        }
+    }
 }

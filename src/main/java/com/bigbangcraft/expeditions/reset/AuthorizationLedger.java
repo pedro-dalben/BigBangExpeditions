@@ -28,6 +28,7 @@ public final class AuthorizationLedger {
         public String issuedBy = "";
         public String finalizedBy = "";
         public int generationAtIssue = -1;
+        public String sectorId = "";
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -55,6 +56,11 @@ public final class AuthorizationLedger {
     /** Error message on refusal, empty on success. */
     public synchronized java.util.Optional<String> recordIssued(String authId, int generation,
                                                                 String by, long nowEpochMs) throws IOException {
+        return recordIssued(authId, generation, "", by, nowEpochMs);
+    }
+
+    public synchronized java.util.Optional<String> recordIssued(String authId, int generation, String sectorId,
+                                                                String by, long nowEpochMs) throws IOException {
         if (authId == null || authId.isBlank()) return java.util.Optional.of("auth id blank");
         TreeMap<String, Entry> all = load();
         if (all.containsKey(authId)) return java.util.Optional.of("auth already recorded: " + authId);
@@ -62,9 +68,26 @@ public final class AuthorizationLedger {
         e.issuedAtEpochMs = nowEpochMs;
         e.issuedBy = by == null ? "" : by;
         e.generationAtIssue = generation;
+        e.sectorId = sectorId == null ? "" : sectorId;
         all.put(authId, e);
         save(all);
         return java.util.Optional.empty();
+    }
+
+    /** All entries (read-only view). */
+    public synchronized java.util.Map<String, Entry> all() throws IOException {
+        return new TreeMap<>(load());
+    }
+
+    /** Auth ids currently in ISSUED state for the given sector. */
+    public synchronized java.util.List<String> issuedFor(String sectorId) throws IOException {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        for (Map.Entry<String, Entry> e : load().entrySet()) {
+            if (e.getValue().status == Status.ISSUED && e.getValue().sectorId.equals(sectorId)) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
     }
 
     /**
