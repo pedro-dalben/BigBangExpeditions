@@ -1,0 +1,16 @@
+{
+  "cyclesAnalyzed": "2-16 (15 valid full-coverage cycles)",
+  "regenSettleSeconds": {"min": 150, "max": 151, "trend": "flat"},
+  "resetDurationFileOps": "<2s every cycle",
+  "structureMarkers": {
+    "types": 35,
+    "changedAcross5Resets": 0,
+    "note": "byte-identical marker census incl. bank/police/hotel/medical classes"
+  },
+  "diskUsage": {
+    "expeditionRegionDirMB": 30,
+    "note": "stable; per-region backups 8-25MB archived outside world"
+  },
+  "degradationSignals": ["none observed"],
+  "serverCrashesDuringSoak": 0
+}

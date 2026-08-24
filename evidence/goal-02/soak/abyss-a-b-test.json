@@ -1,0 +1,10 @@
+{
+  "question": "Is deceasedcraft:abyss failure caused by Goal 02 changes?",
+  "method": "removed bigbangexpeditions entry from dimensionsWithProfiles (pristine pack LC config), restarted, attempted abyss chunk generation",
+  "result": "identical failure WITHOUT our changes: 'Error getting resource deceasedcraft:abyss' -> WorldStyleRE null",
+  "rootCause": "profile deceasedcraft_biosphere sets worldStyle=deceasedcraft:abyss but data/deceasedcraft/lostcities/worldstyles/abyss.json does not exist anywhere in pack 5.10.16 (all-jar sweep)",
+  "alsoAffected": "lostworlds:abyss fails identically (same profile reference)",
+  "portalStatus": "abyss portal KubeJS registration is commented out in the pack itself",
+  "conclusion": "pre-existing pack defect on dedicated servers; Goal 02 neither caused nor worsened it; criterion 'abyss keeps working' resolves to 'unaffected by BBE (was already broken upstream)'",
+  "configRestored": true
+}

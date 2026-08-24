@@ -1,0 +1,21 @@
+=== Baseline Compare ===
+before: c4base @ 2026-08-24T08:18:03.338591850Z
+after:  c14cmp @ 2026-08-24T10:12:12.333257805Z
+bounds bigbangexpeditions:expedition 128,128 -> 159,159 (chunks 1024)
+blockEntityCount: 6251 -> 6255 (delta +4)
+containerCount: 3464 -> 3467 (delta +3)
+spawnerCount: 480 (unchanged)
+entityCount: 95 -> 98 (delta +3)
+loadedChunks: 1024 (unchanged)
+playersInside: 0 (unchanged)
+opacIntersecting: 0 (unchanged)
+BE by type changes:
+  apocalypsenow:coke_vending_machine: 12 -> 13
+  apocalypsenow:porpsi_vending_machine: 4 -> 5
+  minecraft:blast_furnace: 62 -> 63
+  minecraft:campfire: 3 -> 4
+BE by ns changes:
+  apocalypsenow: 405 -> 407
+  minecraft: 669 -> 671
+warnings before: [unknown BE namespaces: createbigcannons,another_furniture,refurbished_furniture,vinery,doapi,apocalypsenow,fastpaintings,cfm,zombie_extreme,createaddition,refueled,createdieselgenerators, Create BEs in sector: 336, IE BEs: 21, RS BEs: 206 (SavedData graph may survive region delete), SecurityCraft BEs: 1, block entities present — regen would delete player builds, entities in sector: 95]
+warnings after: [unknown BE namespaces: createbigcannons,another_furniture,refurbished_furniture,vinery,doapi,apocalypsenow,fastpaintings,cfm,zombie_extreme,createaddition,refueled,createdieselgenerators, Create BEs in sector: 336, IE BEs: 21, RS BEs: 206 (SavedData graph may survive region delete), SecurityCraft BEs: 1, block entities present — regen would delete player builds, entities in sector: 98]

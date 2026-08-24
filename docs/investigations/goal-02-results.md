@@ -30,6 +30,21 @@
 
 * **Dimension content:** r.4.4 census — 480 spawners, ~3.5k containers
   (lootr), DeceasedCraft building palettes; profile fingerprint recorded.
+* **Structure-class validation (Phase 18):** loot-table markers embedded in
+  chunk NBT identify real building classes across 30 generated regions:
+  bank (`building_officebank` ×598), police (`building_policeoffice1` ×478),
+  residential/hotel (`building_hotela..d` ×4079), medical
+  (`multi_polyclinic`), gas stations, offices, workshops. Census is
+  **byte-identical** across 5 further resets (soak).
+* **Soak (Phase 22):** 15 valid cycles total; regen settle flat at
+  150–151 s; offline ops <2 s; zero crashes; zero structure-marker drift;
+  disk stable (see `evidence/goal-02/soak/soak-analysis.json`).
+* **Abyss A/B test:** with our config entry removed, `deceasedcraft:abyss`
+  fails identically — the pack's biosphere profile references a worldstyle
+  asset (`worldstyles/abyss.json`) that does not exist anywhere in pack
+  5.10.16, and its portal script ships commented out. Pre-existing upstream
+  defect; Goal 02 neither caused nor worsened it.
+  (`evidence/goal-02/soak/abyss-a-b-test.json`)
 * **Determinism campaign:** cycles 2–11 full-coverage PASS vs settled
   reference (`evidence/goal-02/cycle-*`); consecutive captures of a settled
   world identical (6250 BEs / 3465 containers / 480 spawners).
@@ -61,8 +76,8 @@ B3 — dedicated expedition dimension, whole-dimension (B1-shaped) reset
      executor remains validated staging tooling/fallback
 
 Regeneration cycles:
-11 attempted (full protocol)
-10 passed  (cycles 2–11)
+16 attempted (full protocol)
+15 passed  (cycles 2–16)
 1 failed   (cycle 1: methodology — partial baseline coverage)
 
 Rollback:
@@ -89,7 +104,7 @@ Build:
 PASS
 
 Commits created during Goal 02:
-26
+33
 
 Critical unresolved risks:
 - No interactive client in this environment: visual seam inspection,
@@ -97,9 +112,13 @@ Critical unresolved risks:
   destructive-path safety does not depend on them (preflight fails
   closed regardless of player behavior)
 - Boundary variance of sector resets when neighbor regions persist is
-  real (measured); mitigated by the B1-shaped production recommendation
+  real at chest-NBT level though structure markers proved stable;
+  mitigated by the B1-shaped production recommendation
 - Custom dimension_type loader anomaly unresolved (bed respawn inside
   expedition currently possible; tracked with mitigation plan)
+- Upstream pack defect: deceasedcraft:abyss cannot generate on any
+  dedicated server (missing worldstyles/abyss.json, portal disabled);
+  unrelated to BBE, A/B-verified
 ```
 
 Production enablement of any destructive capability remains explicitly out
