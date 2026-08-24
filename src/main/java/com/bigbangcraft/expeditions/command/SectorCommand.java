@@ -54,6 +54,8 @@ public final class SectorCommand {
                                 .then(idArg(ctx -> transition(ctx.getSource(), id(ctx), SectorState.OPEN))))
                         .then(Commands.literal("reset-plan")
                                 .then(idArg(ctx -> resetPlan(ctx.getSource(), id(ctx)))))
+                        .then(Commands.literal("begin-validation")
+                                .then(idArg(ctx -> transition(ctx.getSource(), id(ctx), SectorState.VALIDATING))))
                         .then(Commands.literal("attach-baseline")
                                 .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
                                         .then(Commands.argument("baselineId", com.mojang.brigadier.arguments.StringArgumentType.string())
