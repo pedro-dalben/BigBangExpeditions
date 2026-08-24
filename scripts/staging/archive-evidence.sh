@@ -10,9 +10,10 @@ LABEL="${1:?usage: archive-evidence.sh <label>}"
 EV_DIR="$REPO_ROOT/evidence/goal-02/$LABEL"
 mkdir -p "$EV_DIR"
 
-[ -f "$LOG_FILE" ] && cp "$LOG_FILE" "$EV_DIR/latest.log"
-[ -f "$SERVER_DIR/console.out" ] && cp "$SERVER_DIR/console.out" "$EV_DIR/console.out"
-[ -f "$SERVER_DIR/logs/debug.log" ] && grep -E 'BigBangExpeditions|LostCities|lostcities' "$SERVER_DIR/logs/debug.log" > "$EV_DIR/relevant-debug.log" || true
+# Lightweight evidence only — raw logs are too large to track.
+[ -f "$LOG_FILE" ] && grep -E 'BigBangExpeditions|expedition|Done \([0-9.]+s\)|ERROR|FATAL' "$LOG_FILE" > "$EV_DIR/latest-relevant.log"
+[ -f "$SERVER_DIR/console.out" ] && grep -E 'BigBangExpeditions|expedition|Done \([0-9.]+s\)|ERROR|FATAL' "$SERVER_DIR/console.out" > "$EV_DIR/console-relevant.log" || true
+[ -f "$SERVER_DIR/logs/debug.log" ] && grep -E 'BigBangExpeditions|lostcities' "$SERVER_DIR/logs/debug.log" > "$EV_DIR/relevant-debug.log" || true
 
 if [ -d "$SERVER_DIR/bigbangexpeditions/baselines" ]; then
     mkdir -p "$EV_DIR/baselines"
