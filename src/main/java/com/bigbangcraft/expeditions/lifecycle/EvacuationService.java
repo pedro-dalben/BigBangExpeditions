@@ -66,6 +66,9 @@ public final class EvacuationService {
                 p.getPersistentData().remove(com.bigbangcraft.expeditions.teleport.ReturnPosition.key());
             }
             count++;
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                    new com.bigbangcraft.expeditions.event.BbeEvents.PlayerEvacuated(
+                            p, action.playerName(), action.type().name()));
             services.audit().record(AuditEvent.of("PLAYER_EVACUATED", actor)
                     .subject(action.playerName())
                     .outcome(action.type() == EvacuationPlan.ActionType.TELEPORT_OUT ? "OK" : "EVICT_ON_JOIN")

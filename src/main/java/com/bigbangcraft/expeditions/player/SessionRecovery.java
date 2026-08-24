@@ -80,6 +80,10 @@ public final class SessionRecovery {
     static void recoverToPersistentWorld(ServerPlayer player, RuntimeServices services,
                                          String messageKey, String auditOutcome,
                                          String detail) {
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new com.bigbangcraft.expeditions.event.BbeEvents.PlayerEvacuated(
+                        player, player.getName().getString(),
+                        "RESPAWN_REDIRECT".equals(auditOutcome) ? "RESPAWN_REDIRECT" : "RECOVERED"));
         String name = player.getName().getString();
         var stored = ExpeditionAccessService.readReturn(player);
         var targetLevel = ExpeditionAccessService.resolveDimension(

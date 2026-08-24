@@ -32,6 +32,14 @@ public final class SectorRecord {
     /** Free-form annotations (who created/locked etc). */
     public Map<String, String> notes = new TreeMap<>();
 
+    /**
+     * Goal 04: player-facing district identity. Sectors are navigation/
+     * statistical districts since production regenerates whole dimensions;
+     * these fields carry no lifecycle authority. Empty = fall back to {@code id}.
+     */
+    public String displayName = "";
+    public String description = "";
+
     public SectorRecord() {} // serializer
 
     public SectorRecord(String id, String dimension, int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {

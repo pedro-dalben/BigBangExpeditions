@@ -127,6 +127,9 @@ public final class ExpeditionAccessService {
             LOG.warn("entry audit failed: {}", e.toString());
         }
         LOG.info("[enter] {} -> expedition@{},{}", name, x, z);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new com.bigbangcraft.expeditions.event.BbeEvents.PlayerEnteredExpedition(
+                        player, currentGenerationSafe(services)));
         return new EnterResult(EnterOutcome.ENTERED, state);
     }
 
@@ -164,6 +167,8 @@ public final class ExpeditionAccessService {
             com.bigbangcraft.expeditions.player.SessionRecovery.markTransferDone(player);
             send(player, "bbe.leave.success", rp.toString());
             auditLeft(services, name, "OK");
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                    new com.bigbangcraft.expeditions.event.BbeEvents.PlayerLeftExpedition(player));
             return LeaveOutcome.LEFT;
         }
 
@@ -249,6 +254,14 @@ public final class ExpeditionAccessService {
             services.audit().record(AuditEvent.of("PLAYER_LEFT", name).outcome(outcome));
         } catch (Exception e) {
             LOG.warn("leave audit failed: {}", e.toString());
+        }
+    }
+
+    private static int currentGenerationSafe(RuntimeServices services) {
+        try {
+            return services.lifecycle().current().generation;
+        } catch (Exception e) {
+            return -1;
         }
     }
 

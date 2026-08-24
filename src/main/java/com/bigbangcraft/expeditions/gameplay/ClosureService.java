@@ -144,6 +144,8 @@ public final class ClosureService {
         }
         Component line = Component.literal(Translations.t("bbe.closing.started", duration));
         for (var p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new com.bigbangcraft.expeditions.event.BbeEvents.ExpeditionClosingStarted(deadline, duration));
         Broadcast.playAlarm(server, config, SoundEvents.NOTE_BLOCK_BELL.value());
         try {
             services.audit().record(AuditEvent.of("CLOSING_STARTED", actor)
@@ -172,6 +174,8 @@ public final class ClosureService {
     public static void announceOpening(MinecraftServer server, int generation) {
         GameplayConfig config = loadConfig(server);
         if (!config.openingAnnouncementEnabled() || !config.announcementsEnabled()) return;
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new com.bigbangcraft.expeditions.event.BbeEvents.ExpeditionOpened(generation));
         Component title = Component.literal(Translations.t("bbe.opening.title"));
         Component body = Component.literal(Translations.t("bbe.opening.body", generation));
         for (var p : server.getPlayerList().getPlayers()) {

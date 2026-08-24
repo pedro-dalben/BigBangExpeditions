@@ -78,7 +78,7 @@ public final class JourneyCommand {
         SectorRegistry registry = new SectorRegistry(BbeLayout.sectorsFile(player.getServer()));
         String district = SectorLocator.locate(registry.list(),
                 LostCitiesAdapter.expeditionDimensionId().toString(), chunkX, chunkZ)
-                .map(r -> r.id)
+                .map(r -> r.displayName == null || r.displayName.isBlank() ? r.id : r.displayName)
                 .orElseGet(() -> Translations.t("bbe.where.wilderness"));
         ExpeditionAccessService.send(player, "bbe.where.format",
                 district,

@@ -72,6 +72,13 @@ public final class SectorCommand {
                                                 .executes(ctx -> attachBaseline(ctx.getSource(),
                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
                                                          com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId")))))))
+                        .then(Commands.literal("rename")
+                                .requires(s -> s.hasPermission(2))
+                                .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .then(Commands.argument("displayName", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                                .executes(ctx -> rename(ctx.getSource(),
+                                                        com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
+                                                        com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "displayName"))))))
                 .then(Commands.literal("probe").requires(s -> s.hasPermission(2))
                         .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
                                 .then(Commands.argument("dimension", net.minecraft.commands.arguments.ResourceLocationArgument.id())
@@ -121,6 +128,34 @@ public final class SectorCommand {
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> idArg(
             com.mojang.brigadier.Command<CommandSourceStack> exec) {
         return Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(exec);
+    }
+
+    /** Goal 04: give a sector its player-facing district name. */
+    private static int rename(CommandSourceStack src, String id, String displayName) {
+        var registry = registry(src.getServer());
+        var rec = registry.get(id);
+        if (rec.isEmpty()) {
+            src.sendFailure(Component.literal("REFUSED: unknown sector '" + id + "'"));
+            return 0;
+        }
+        String name = displayName.trim();
+        if (name.length() > 48) {
+            src.sendFailure(Component.literal("REFUSED: display name too long (max 48)"));
+            return 0;
+        }
+        synchronized (registry) {
+            SectorRecord r = rec.get();
+            r.displayName = name;
+            r.updatedAtEpochMs = System.currentTimeMillis();
+            try {
+                registry.save();
+            } catch (Exception e) {
+                src.sendFailure(Component.literal("save failed: " + e.getMessage()));
+                return 0;
+            }
+        }
+        src.sendSuccess(() -> Component.literal("Sector '" + id + "' renamed to '" + name + "'."), false);
+        return 1;
     }
 
     private static String id(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {

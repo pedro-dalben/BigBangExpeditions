@@ -4,6 +4,7 @@ import com.bigbangcraft.expeditions.command.DimensionStatusCommand;
 import com.bigbangcraft.expeditions.command.ExpeditionCommand;
 import com.bigbangcraft.expeditions.command.JourneyCommand;
 import com.bigbangcraft.expeditions.command.LifecycleCommand;
+import com.bigbangcraft.expeditions.command.OpsCommand;
 import com.bigbangcraft.expeditions.command.OpacSelfTestCommand;
 import com.bigbangcraft.expeditions.command.SectorCommand;
 import com.bigbangcraft.expeditions.core.RuntimeServices;
@@ -44,6 +45,7 @@ public class BigBangExpeditions {
         DimensionStatusCommand.addTo(root);  // perm 2: dimension status
         OpacSelfTestCommand.addTo(root);     // perm 2: opac selftest
         SectorCommand.addTo(root);           // perm 2: sector registry ops
+        OpsCommand.addTo(root);              // perm 2/3: gameplay administration
         LifecycleCommand.addTo(root);        // perm 2/3: production lifecycle
         e.getDispatcher().register(root);
         LOG.info("Registered /expedition command tree");
