@@ -1,15 +1,24 @@
 package com.bigbangcraft.expeditions.command;
 
+import com.bigbangcraft.expeditions.sector.SectorBounds;
+import com.bigbangcraft.expeditions.sector.SectorProbeResult;
 import com.bigbangcraft.expeditions.sector.SectorRecord;
 import com.bigbangcraft.expeditions.sector.SectorRegistry;
 import com.bigbangcraft.expeditions.sector.SectorState;
 import com.bigbangcraft.expeditions.sector.SectorTopology;
-import com.mojang.brigadier.CommandDispatcher;
+import com.bigbangcraft.expeditions.validation.BaselineData;
+import com.bigbangcraft.expeditions.validation.BaselineService;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -26,10 +35,11 @@ public final class SectorCommand {
 
     private SectorCommand() {}
 
-    public static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("expedition")
-                .requires(s -> s.hasPermission(2))
-                .then(Commands.literal("sector")
+    private static final Logger LOG = LogManager.getLogger("BigBangExpeditions/SectorCmd");
+
+    /** Operator sector subtree attached to the single /expedition root (Goal 04). */
+    public static void addTo(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root.then(Commands.literal("sector").requires(s -> s.hasPermission(2))
                         .then(Commands.literal("list").executes(ctx -> list(ctx.getSource())))
                         .then(Commands.literal("status")
                                 .then(idArg(ctx -> status(ctx.getSource(), id(ctx)))))
@@ -61,7 +71,51 @@ public final class SectorCommand {
                                         .then(Commands.argument("baselineId", com.mojang.brigadier.arguments.StringArgumentType.string())
                                                 .executes(ctx -> attachBaseline(ctx.getSource(),
                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
-                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId"))))))));
+                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId")))))))
+                .then(Commands.literal("probe").requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .then(Commands.argument("dimension", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+                                        .then(Commands.argument("minX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                .then(Commands.argument("minZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                        .then(Commands.argument("maxX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                .then(Commands.argument("maxZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                        .executes(ctx -> probe(ctx.getSource(),
+                                                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
+                                                                                net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "dimension"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minX"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minZ"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxX"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxZ"))))))))))
+                .then(Commands.literal("baseline").requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .then(Commands.argument("dimension", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+                                        .then(Commands.argument("minX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                .then(Commands.argument("minZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                        .then(Commands.argument("maxX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                .then(Commands.argument("maxZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                        .executes(ctx -> baseline(ctx.getSource(),
+                                                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
+                                                                                net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "dimension"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minX"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minZ"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxX"),
+                                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxZ"))))))))))
+                .then(Commands.literal("compare").requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("beforeFile", com.mojang.brigadier.arguments.StringArgumentType.string())
+                                .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .then(Commands.argument("dimension", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+                                                .then(Commands.argument("minX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                        .then(Commands.argument("minZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                .then(Commands.argument("maxX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                        .then(Commands.argument("maxZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+                                                                                .executes(ctx -> compare(ctx.getSource(),
+                                                                                        com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "beforeFile"),
+                                                                                        com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
+                                                                                        net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "dimension"),
+                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minX"),
+                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minZ"),
+                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxX"),
+                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxZ")))))))))));
     }
 
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> idArg(
@@ -225,5 +279,83 @@ public final class SectorCommand {
 
     private static void send(CommandSourceStack src, String line) {
         src.sendSuccess(() -> Component.literal(line), false);
+    }
+
+    private static int probe(CommandSourceStack src, String id, ResourceLocation dim, int minX, int minZ, int maxX, int maxZ) {
+        MinecraftServer server = src.getServer();
+        SectorBounds bounds = new SectorBounds(id, dim, minX, minZ, maxX, maxZ);
+        String err = bounds.validate();
+        if (err != null) {
+            src.sendFailure(Component.literal("REFUSED: " + err));
+            return 0;
+        }
+        ServerLevel level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, dim));
+        SectorProbeResult r = BaselineService.probe(server, level, bounds);
+        src.sendSuccess(() -> Component.literal("=== Probe " + bounds + " ==="), false);
+        src.sendSuccess(() -> Component.literal("Verdict: " + r.verdict()), false);
+        src.sendSuccess(() -> Component.literal("Chunks: " + r.chunkCount + " loaded=" + r.loadedChunks), false);
+        src.sendSuccess(() -> Component.literal("Players inside: " + r.playersInside + (r.playerNames.isEmpty() ? "" : " " + r.playerNames)), false);
+        src.sendSuccess(() -> Component.literal("OPAC: " + r.opacStatus + (r.opacAvailable ? "" : " (UNAVAILABLE)") ), false);
+        src.sendSuccess(() -> Component.literal("BEs: " + r.blockEntityCount + " containers=" + r.containerCount + " spawners=" + r.spawnerCount + " entities=" + r.entityCount), false);
+        src.sendSuccess(() -> Component.literal(String.format("Create=%d IE=%d RS=%d SC=%d", r.createCount, r.immersiveCount, r.refinedStorageCount, r.securityCraftCount)), false);
+        if (r.blockEntitiesByNamespace != null && !r.blockEntitiesByNamespace.isEmpty())
+            src.sendSuccess(() -> Component.literal("BE by ns: " + r.blockEntitiesByNamespace), false);
+        for (String w : r.warnings()) src.sendSuccess(() -> Component.literal("WARN: " + w), false);
+        for (String reason : r.reasons()) src.sendSuccess(() -> Component.literal("REFUSED: " + reason), false);
+        String verdictMsg = switch (r.verdict()) {
+            case PASS -> "PASS — no blocking issues detected (still read-only)";
+            case WARN -> "WARN — sector has content that would be deleted; would REFUSE regen";
+            case REFUSED -> "REFUSED — must not regen";
+        };
+        src.sendSuccess(() -> Component.literal(verdictMsg), false);
+        LOG.info("[probe] {} verdict={}", bounds, r.verdict());
+        return 1;
+    }
+
+    private static int baseline(CommandSourceStack src, String id, ResourceLocation dim, int minX, int minZ, int maxX, int maxZ) {
+        MinecraftServer server = src.getServer();
+        SectorBounds bounds = new SectorBounds(id, dim, minX, minZ, maxX, maxZ);
+        String err = bounds.validate();
+        if (err != null) { src.sendFailure(Component.literal("REFUSED: " + err)); return 0; }
+        ServerLevel level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, dim));
+        SectorProbeResult probeResult = BaselineService.probe(server, level, bounds);
+        BaselineData data = BaselineService.toBaseline(server, level, probeResult);
+        try {
+            Path p = BaselineService.writeBaseline(server, data);
+            src.sendSuccess(() -> Component.literal("Baseline written: " + p + " verdict=" + probeResult.verdict()), false);
+            LOG.info("[baseline] {} -> {}", bounds, p);
+            return 1;
+        } catch (Exception e) {
+            src.sendFailure(Component.literal("baseline failed: " + e.getMessage()));
+            LOG.error("baseline failed", e);
+            return 0;
+        }
+    }
+
+    private static int compare(CommandSourceStack src, String beforeFile, String id, ResourceLocation dim, int minX, int minZ, int maxX, int maxZ) {
+        MinecraftServer server = src.getServer();
+        Path beforePath = server.getServerDirectory().toPath().resolve("bigbangexpeditions/baselines").resolve(beforeFile);
+        if (!Files.exists(beforePath)) {
+            beforePath = Path.of(beforeFile);
+        }
+        if (!Files.exists(beforePath)) {
+            src.sendFailure(Component.literal("beforeFile not found: " + beforeFile + " (look in bigbangexpeditions/baselines/)"));
+            return 0;
+        }
+        try {
+            BaselineData before = BaselineService.readBaseline(beforePath);
+            SectorBounds bounds = new SectorBounds(id, dim, minX, minZ, maxX, maxZ);
+            ServerLevel level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, dim));
+            SectorProbeResult probeResult = BaselineService.probe(server, level, bounds);
+            BaselineData after = BaselineService.toBaseline(server, level, probeResult);
+            String diff = BaselineService.compare(before, after);
+            src.sendSuccess(() -> Component.literal(diff), false);
+            LOG.info("[compare] {} vs {}", beforePath, bounds);
+            return 1;
+        } catch (Exception e) {
+            src.sendFailure(Component.literal("compare failed: " + e.getMessage()));
+            LOG.error("compare failed", e);
+            return 0;
+        }
     }
 }

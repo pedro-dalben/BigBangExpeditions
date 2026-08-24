@@ -6,7 +6,7 @@ import com.bigbangcraft.expeditions.lifecycle.EntryDecision;
 import com.bigbangcraft.expeditions.lifecycle.EvacuationService;
 import com.bigbangcraft.expeditions.lifecycle.LifecycleRecord;
 import com.bigbangcraft.expeditions.lifecycle.LifecycleState;
-import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -29,10 +29,9 @@ public final class LifecycleCommand {
 
     private LifecycleCommand() {}
 
-    public static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("expedition")
-                .requires(s -> s.hasPermission(2))
-                .then(Commands.literal("lifecycle")
+    /** Lifecycle subtree attached to the single /expedition root (Goal 04). */
+    public static void addTo(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root.then(Commands.literal("lifecycle").requires(s -> s.hasPermission(2))
                         .then(Commands.literal("status")
                                 .executes(ctx -> status(ctx.getSource())))
                         .then(Commands.literal("close")
@@ -63,7 +62,7 @@ public final class LifecycleCommand {
                                 .requires(s -> s.hasPermission(3))
                                 .executes(ctx -> issueAuthorization(ctx.getSource())))
                         .then(Commands.literal("health")
-                                .executes(ctx -> health(ctx.getSource())))));
+                                .executes(ctx -> health(ctx.getSource()))));
     }
 
     private record Src(CommandSourceStack src) {

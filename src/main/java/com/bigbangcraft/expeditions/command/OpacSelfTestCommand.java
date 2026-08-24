@@ -2,7 +2,7 @@ package com.bigbangcraft.expeditions.command;
 
 import com.bigbangcraft.expeditions.integration.lostcities.LostCitiesAdapter;
 import com.bigbangcraft.expeditions.integration.opac.OpacAdapter;
-import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -31,17 +31,15 @@ public final class OpacSelfTestCommand {
 
     private OpacSelfTestCommand() {}
 
-    public static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("expedition")
-                .requires(s -> s.hasPermission(2))
-                .then(Commands.literal("opac")
+    public static void addTo(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root.then(Commands.literal("opac").requires(s -> s.hasPermission(2))
                         .then(Commands.literal("selftest")
                                 .executes(ctx -> run(ctx.getSource(), 0, 0))
                                 .then(Commands.argument("chunkX", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
                                         .then(Commands.argument("chunkZ", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
                                                 .executes(ctx -> run(ctx.getSource(),
                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "chunkX"),
-                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "chunkZ"))))))));
+                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "chunkZ")))))));
     }
 
     private static int run(CommandSourceStack src, int chunkX, int chunkZ) {

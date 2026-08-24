@@ -1,7 +1,7 @@
 package com.bigbangcraft.expeditions.command;
 
 import com.bigbangcraft.expeditions.integration.lostcities.LostCitiesAdapter;
-import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -26,15 +26,14 @@ public final class DimensionStatusCommand {
 
     private DimensionStatusCommand() {}
 
-    public static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("expedition")
-                .requires(s -> s.hasPermission(2))
-                .then(Commands.literal("dimension")
+    /** Operator diagnostics subtree attached to the single /expedition root (Goal 04). */
+    public static void addTo(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root.then(Commands.literal("dimension").requires(s -> s.hasPermission(2))
                         .then(Commands.literal("status")
                                 .executes(ctx -> status(ctx.getSource(), LostCitiesAdapter.expeditionDimensionId()))
                                 .then(Commands.argument("dimId", net.minecraft.commands.arguments.ResourceLocationArgument.id())
                                         .executes(ctx -> status(ctx.getSource(),
-                                                net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "dimId")))))));
+                                                net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "dimId"))))));
     }
 
     private static int status(CommandSourceStack src, ResourceLocation dimId) {
