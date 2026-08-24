@@ -28,7 +28,14 @@ public final class OperationJournal {
     public static final String PHASE_DELETION_INTENT = "DELETION_INTENT";
     public static final String PHASE_DELETION_DONE = "DELETION_DONE";
     public static final String PHASE_LIFECYCLE_RESETTING = "LIFECYCLE_RESETTING";
+    public static final String PHASE_ROLLBACK_DONE = "ROLLBACK_DONE";
     public static final String PHASE_FINALIZED = "FINALIZED";
+
+    /** Canonical progress order used to report the highest reached phase. */
+    private static final List<String> CANONICAL_ORDER = List.of(
+            PHASE_AUTH_VERIFIED, PHASE_BACKUP_START, PHASE_BACKUP_DONE,
+            PHASE_DELETION_INTENT, PHASE_DELETION_DONE, PHASE_LIFECYCLE_RESETTING,
+            PHASE_ROLLBACK_DONE);
 
     public String authId;
     public long startedAtEpochMs;
@@ -106,13 +113,15 @@ public final class OperationJournal {
                     OperationJournal j = GSON.fromJson(Files.readString(p), OperationJournal.class);
                     if (j == null || j.authId == null) continue;
                     boolean finished = j.phases.stream().anyMatch(ph -> PHASE_FINALIZED.equals(ph.name));
-                    // last COMPLETED OPERATIONAL phase (FINALIZED is pure bookkeeping)
-                    String last = j.phases.stream().map(ph -> ph.name)
-                            .filter(n -> !PHASE_FINALIZED.equals(n))
-                            .reduce((a, b) -> b)
-                            .orElse(null);
+                    // highest phase reached in canonical order (FINALIZED is bookkeeping)
+                    int bestIdx = -1;
+                    String last = null;
+                    for (var ph : j.phases) {
+                        int idx = CANONICAL_ORDER.indexOf(ph.name);
+                        if (idx > bestIdx) { bestIdx = idx; last = ph.name; }
+                    }
                     OpSummary s = new OpSummary(j.authId, !finished, last, j.startedAtEpochMs);
-                    if (best == null || s.startedAt > best.startedAt) best = s;
+                    if (best == null || s.startedAt() > best.startedAt()) best = s;
                 } catch (Exception ignored) {
                     // unreadable journal is itself evidence of interruption
                     OpSummary s = new OpSummary(p.getFileName().toString(), true, "UNREADABLE", Long.MAX_VALUE);

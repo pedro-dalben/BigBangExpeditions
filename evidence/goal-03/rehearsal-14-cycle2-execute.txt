@@ -1,0 +1,9 @@
+[prod] AUTH_OK 05e5d0ce-5a98-4f8d-90ee-394304cafd83 scope=DIMENSION generation=1
+[prod] target confined: /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/world/dimensions/bigbangexpeditions/expedition
+[prod] backup manifest: 33 files, 16796661 bytes
+[prod] backup verified at /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/bigbangexpeditions/backups/05e5d0ce-5a98-4f8d-90ee-394304cafd83
+[prod] deleted 31 files under /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/world/dimensions/bigbangexpeditions/expedition
+[prod] lifecycle -> RESETTING
+[prod] RESET COMPLETE for authorization 05e5d0ce-5a98-4f8d-90ee-394304cafd83
+[prod] next: start the server — startup gate resumes BOOTING->VALIDATING; run baseline compare then /expedition lifecycle open
+RESET REFUSED — AUTH_REFUSED:LEDGER_REVOKED

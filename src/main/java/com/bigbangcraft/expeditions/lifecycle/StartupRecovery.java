@@ -30,14 +30,23 @@ public final class StartupRecovery {
         LifecycleState s = r.status;
         boolean activeOp = j != null && j.hasActiveOp();
         String phase = j == null ? null : j.lastCompletedPhase();
+        boolean deletionProof = PHASE_DELETION_DONE.equals(phase);
 
-        // OPEN is only acceptable with no unfinished operation anywhere.
+        // A journal that reached DELETION_DONE (even if later finalized) is
+        // durable proof the destructive phase completed.
         if (!activeOp) {
-            if (s == LifecycleState.RESETTING || s == LifecycleState.BOOTING) {
-                return Finding.bad("DESTRUCTIVE_STATE_WITHOUT_JOURNAL",
-                        "status=" + s + " but no operation journal present — unknown destructive state");
+            switch (s) {
+                case RESETTING:
+                case BOOTING:
+                case VALIDATING:
+                    if (!deletionProof) {
+                        return Finding.bad("DESTRUCTIVE_STATE_WITHOUT_JOURNAL",
+                                "status=" + s + " without completed-deletion proof — unknown destructive state");
+                    }
+                    return Finding.ok();
+                default:
+                    return Finding.ok();
             }
-            return Finding.ok();
         }
 
         switch (s) {
@@ -45,21 +54,18 @@ public final class StartupRecovery {
             case BACKUP:
             case PREFLIGHT:
             case LOCKED:
-                // op claimed but destructive phase not yet legitimately entered:
-                // stale/interrupted preparation — require inspection
                 return Finding.bad("STALE_OPERATION",
                         "active journal in state " + s + " (lastCompletedPhase=" + phase + ")");
             case RESETTING:
-                if (!PHASE_DELETION_DONE.equals(phase)) {
+                if (!deletionProof) {
                     return Finding.bad("INTERRUPTED_DELETION",
                             "RESETTING without DELETION_DONE (lastCompletedPhase="
                                     + (phase == null ? "<none>" : phase) + ") — dimension may be half-deleted");
                 }
-                // deletion completed; boot should continue to BOOTING via explicit step
                 return Finding.ok();
             case BOOTING:
             case VALIDATING:
-                if (!PHASE_DELETION_DONE.equals(phase)) {
+                if (!deletionProof) {
                     return Finding.bad("BOOT_WITHOUT_COMPLETED_DELETION",
                             "status=" + s + " requires DELETION_DONE, got "
                                     + (phase == null ? "<none>" : phase));

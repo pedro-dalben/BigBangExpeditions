@@ -44,6 +44,11 @@ public final class LifecycleCommand {
                         .then(Commands.literal("begin-validation")
                                 .requires(s -> s.hasPermission(3))
                                 .executes(ctx -> beginValidation(ctx.getSource())))
+                        .then(Commands.literal("record-validation")
+                                .requires(s -> s.hasPermission(3))
+                                .then(Commands.argument("result", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                        .executes(ctx -> recordValidation(ctx.getSource(),
+                                                com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "result")))))
                         .then(Commands.literal("open")
                                 .requires(s -> s.hasPermission(3))
                                 .executes(ctx -> open(ctx.getSource())))
@@ -97,6 +102,23 @@ public final class LifecycleCommand {
         }
     }
 
+    /** Best-effort sector-registry mirror of the dimension lifecycle. */
+    private static void syncSector(CommandSourceStack src, LifecycleState lifecycleState) {
+        try {
+            var view = com.bigbangcraft.expeditions.reset.ProductionResetFlow.sectorView(src.getServer());
+            if (view.first() == null) return;
+            com.bigbangcraft.expeditions.sector.SectorState target =
+                    lifecycleState == LifecycleState.LOCKED
+                            ? com.bigbangcraft.expeditions.sector.SectorState.LOCKED
+                            : com.bigbangcraft.expeditions.sector.SectorState.OPEN;
+            if (view.first().status == target) return;
+            var err = view.registry().transition(view.first().id, target, System.currentTimeMillis());
+            if (err.isEmpty()) view.registry().save();
+        } catch (Exception e) {
+            LOG.warn("sector sync failed (non-fatal): {}", e.toString());
+        }
+    }
+
     /** OPEN → CLOSING → EVACUATING → LOCKED as one deliberate operation. */
     private static int close(CommandSourceStack src) {
         String actor = src.getTextName();
@@ -125,6 +147,9 @@ public final class LifecycleCommand {
             var err4 = services.lifecycle().transition(LifecycleState.LOCKED, actor, "dimension locked");
             if (err4.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err4.get()); return 0; }
 
+            // keep the staging sector view aligned with the production lifecycle
+            syncSector(src, LifecycleState.LOCKED);
+
             services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)
                     .states(LifecycleState.OPEN.name(), LifecycleState.LOCKED.name())
                     .outcome("OK").duration(System.currentTimeMillis() - start)
@@ -146,6 +171,7 @@ public final class LifecycleCommand {
             if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_ABORT", err.get()); return 0; }
             svc(src).audit().record(AuditEvent.of("LIFECYCLE_ABORT_CLOSE", actor)
                     .states(cur.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
+            syncSector(src, LifecycleState.OPEN);
             src.sendSuccess(() -> Component.literal("Closure aborted — expedition reopened."), false);
             return 1;
         } catch (IOException e) {
@@ -159,10 +185,36 @@ public final class LifecycleCommand {
         try {
             var err = svc(src).lifecycle().transition(LifecycleState.VALIDATING, actor, "post-reset validation started");
             if (err.isPresent()) { refuse(src, svc(src), "LIFECYCLE_VALIDATE", err.get()); return 0; }
-            src.sendSuccess(() -> Component.literal("VALIDATING — run baseline compare, then record PASS/FAIL via open/failed path."), false);
+            src.sendSuccess(() -> Component.literal("VALIDATING — run baseline compare, then record PASS/FAIL via record-validation."), false);
             return 1;
         } catch (IOException e) {
             src.sendFailure(Component.literal("begin-validation failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /** Records PASS/FAIL while VALIDATING. FAIL forces the FAILED path. */
+    private static int recordValidation(CommandSourceStack src, String resultRaw) {
+        String actor = src.getTextName();
+        String result = resultRaw == null ? "" : resultRaw.trim().toUpperCase();
+        if (!result.equals("PASS") && !result.equals("FAIL")) {
+            src.sendFailure(Component.literal("REFUSED: result must be PASS or FAIL"));
+            return 0;
+        }
+        try {
+            var err = svc(src).lifecycle().recordValidationResult(result, actor);
+            if (err.isPresent()) { refuse(src, svc(src), "VALIDATION_RECORD", err.get()); return 0; }
+            if (result.equals("FAIL")) {
+                var f = svc(src).lifecycle().transition(LifecycleState.FAILED, actor, "validation FAIL recorded");
+                if (f.isPresent()) { refuse(src, svc(src), "VALIDATION_RECORD", f.get()); return 0; }
+            }
+            svc(src).audit().record(AuditEvent.of("VALIDATION_RECORDED", actor)
+                    .outcome(result));
+            send(src, "validation recorded: " + result
+                    + (result.equals("PASS") ? " — /expedition lifecycle open is now possible" : " — expedition FAILED"));
+            return 1;
+        } catch (IOException e) {
+            src.sendFailure(Component.literal("record-validation failed: " + e.getMessage()));
             return 0;
         }
     }
@@ -184,6 +236,7 @@ public final class LifecycleCommand {
             int generation = svc(src).lifecycle().current().generation;
             svc(src).audit().record(AuditEvent.of("LIFECYCLE_OPEN", actor)
                     .states(rec.status.name(), LifecycleState.OPEN.name()).outcome("OK"));
+            syncSector(src, LifecycleState.OPEN);
             src.sendSuccess(() -> Component.literal("Expedition is OPEN. Generation " + generation + "."), false);
             return 1;
         } catch (IOException e) {

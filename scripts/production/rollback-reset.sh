@@ -78,7 +78,7 @@ PYEOF
 )
     [ "$FAILS" = "0" ] || { echo "ROLLBACK FAILED — $FAILS file(s) failed post-restore verification"; exit 57; }
 
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "ROLLBACK_DONE" >/dev/null 2>&1 || true
 
     info "rollback complete and re-verified from $BACKUP_DIR"

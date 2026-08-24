@@ -57,7 +57,8 @@ public final class VerifyAuthCli {
 
             if (fingerprintFile != null) {
                 if (!Files.isRegularFile(fingerprintFile)) return new Result(false, "CURRENT_FINGERPRINT_MISSING");
-                InstallFingerprint current = InstallFingerprint.fromJson(Files.readString(fingerprintFile));
+                InstallFingerprint current = QualificationStore.loadCurrentExported(Files.readString(fingerprintFile));
+                if (current == null) return new Result(false, "CURRENT_FINGERPRINT_UNREADABLE");
                 if (!a.installFingerprint.sha256().equals(current.sha256())) {
                     return new Result(false, "FINGERPRINT_MISMATCH");
                 }

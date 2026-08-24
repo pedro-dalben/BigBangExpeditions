@@ -57,9 +57,9 @@ public final class ProductionResetFlow {
         HashMap<String, Integer> baselineByType = new HashMap<>();
         if (!view.first.lastBaselineId.isEmpty()) {
             try {
-                Path f = com.bigbangcraft.expeditions.core.BbeLayout.baselinesDir(server)
-                        .resolve(view.first.lastBaselineId + ".json");
-                if (java.nio.file.Files.isRegularFile(f)) {
+                Path f = newestBaselineFile(com.bigbangcraft.expeditions.core.BbeLayout
+                        .baselinesDir(server), view.first.lastBaselineId);
+                if (f != null && java.nio.file.Files.isRegularFile(f)) {
                     BaselineData d = BaselineService.readBaseline(f);
                     if (d != null && d.blockEntitiesByType != null) baselineByType.putAll(d.blockEntitiesByType);
                 }
@@ -94,6 +94,34 @@ public final class ProductionResetFlow {
         var lifecycle = com.bigbangcraft.expeditions.core.RuntimeServices.get(server).lifecycle().current();
         in.lifecycleGeneration = lifecycle.generation;
         return in;
+    }
+
+    /**
+     * Baseline files are written as {@code <id>_<dim>_<timestamp>.json}; resolve
+     * the NEWEST file whose name starts with the baseline id. Returns null when
+     * none matches.
+     */
+    static Path newestBaselineFile(Path baselinesDir, String baselineId) throws java.io.IOException {
+        if (!java.nio.file.Files.isDirectory(baselinesDir)) return null;
+        Path best = null;
+        long bestTs = Long.MIN_VALUE;
+        try (var stream = java.nio.file.Files.list(baselinesDir)) {
+            for (Path p : (Iterable<Path>) stream.filter(f -> {
+                String n = f.getFileName().toString();
+                return n.startsWith(baselineId + "_") && n.endsWith(".json");
+            }).toList()) {
+                String n = p.getFileName().toString();
+                int dot = n.lastIndexOf('.');
+                int dash = n.lastIndexOf('_');
+                long ts = dash >= 0 ? parseSafe(n.substring(dash + 1, dot)) : Long.MIN_VALUE;
+                if (ts >= bestTs) { bestTs = ts; best = p; }
+            }
+        }
+        return best;
+    }
+
+    private static long parseSafe(String s) {
+        try { return Long.parseLong(s); } catch (Exception e) { return Long.MIN_VALUE; }
     }
 
     public static DryRunEngine.DiskProbe diskProbe(MinecraftServer server) {

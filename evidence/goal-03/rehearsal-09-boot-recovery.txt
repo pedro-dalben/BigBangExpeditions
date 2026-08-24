@@ -1,0 +1,10 @@
+---
+=== Expedition health ===
+playersMayEnter: NO (BOOTING)
+lifecycle: BOOTING generation=0
+resetLock: free
+lastOperation: 71e3d653-ccaf-4bcf-a360-b590f4a0581f active=false lastPhase=DELETION_DONE
+pendingAuthorizations: 1
+lastValidationResult: <none>
+rollbackAvailable: 1 backup(s) on disk
+

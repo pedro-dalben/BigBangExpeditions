@@ -1,0 +1,13 @@
+=== Expedition DRY-RUN (WOULD_RESET) ===
+[WARN] ENVIRONMENT — STAGING: full decision pipeline executes; actual deletion stays disabled
+[PASS] RESET_LOCK — lock available
+[PASS] LIFECYCLE — sector LOCKED, generation 0
+[PASS] PREFLIGHT — 1 note(s)
+[WARN] DRIFT — no qualification fingerprint on record (staging tolerated)
+[PASS] AUTHORIZATION — would issue a78199a4-0c54-4b9e-9c01-88e40ddb2fa1 expiring 1787610287631
+[PASS] TARGETS — confined to dimensions/bigbangexpeditions/expedition (whole-dimension scope)
+[PASS] BACKUP_SPACE — available 612638482432 >= needed 115320234
+[PASS] EXECUTION — WOULD DELETE expedition dimension contents and REGENERATE on next boot
+WARN: ENV_STAGING: staging: full pipeline runs, destructive execution unavailable by design
+would-issue: a78199a4-0c54-4b9e-9c01-88e40ddb2fa1 (simulated only — nothing persisted)
+

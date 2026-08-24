@@ -22,7 +22,7 @@ public final class QualificationStore {
     public static InstallFingerprint loadQualification(Path configDir) throws IOException {
         Path f = configDir.resolve(FILE_QUALIFICATION);
         if (!Files.isRegularFile(f)) return null;
-        return InstallFingerprint.fromJson(Files.readString(f));
+        return loadCurrentExported(Files.readString(f)); // tolerant: wrapper or bare
     }
 
     public static void saveQualification(Path configDir, InstallFingerprint f) throws IOException {
@@ -40,11 +40,21 @@ public final class QualificationStore {
     public static InstallFingerprint loadCurrentExported(Path configDir) throws IOException {
         Path f = configDir.resolve(FILE_CURRENT);
         if (!Files.isRegularFile(f)) return null;
-        String json = Files.readString(f);
-        // extract embedded fingerprint object
-        int i = json.indexOf("\"fingerprint\": ") + "\"fingerprint\": ".length();
-        int j = json.lastIndexOf(",\"sha256\"");
-        return InstallFingerprint.fromJson(json.substring(i, j).trim());
+        return loadCurrentExported(Files.readString(f));
+    }
+
+    /** Accepts both the exported wrapper format and a bare fingerprint JSON. */
+    public static InstallFingerprint loadCurrentExported(String json) {
+        String marker = "\"fingerprint\":";
+        int i = json.indexOf(marker);
+        if (i < 0) {
+            return InstallFingerprint.fromJson(json);
+        }
+        i += marker.length();
+        int shaKey = json.lastIndexOf("\"sha256\"");
+        int objEnd = json.lastIndexOf('}', shaKey > 0 ? shaKey : json.length());
+        if (objEnd <= i) return null;
+        return InstallFingerprint.fromJson(json.substring(i, objEnd + 1).trim());
     }
 
     private static void save(Path configDir, String name, InstallFingerprint f) throws IOException {

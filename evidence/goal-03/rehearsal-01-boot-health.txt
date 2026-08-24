@@ -1,0 +1,19 @@
+=== health ===
+=== Expedition health ===
+playersMayEnter: YES
+lifecycle: OPEN generation=0
+resetLock: free
+lastOperation: <none>
+pendingAuthorizations: 0
+lastValidationResult: <none>
+rollbackAvailable: no backups
+
+
+=== status ===
+=== Expedition lifecycle ===
+status: OPEN (players may enter)
+generation: 0
+activeAuthorization: <none>
+lastValidationResult: <none>
+opened: 0  lastReset: 0
+

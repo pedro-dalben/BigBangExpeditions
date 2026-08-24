@@ -49,6 +49,14 @@ class StartupRecoveryTest {
                 new StartupRecovery.JournalSummary(true, StartupRecovery.PHASE_DELETION_DONE)).recoveryRequired());
         assertFalse(StartupRecovery.evaluate(record(LifecycleState.VALIDATING),
                 new StartupRecovery.JournalSummary(true, StartupRecovery.PHASE_DELETION_DONE)).recoveryRequired());
+        // FINALIZED journals keep the durable DELETION_DONE proof
+        assertFalse(StartupRecovery.evaluate(record(LifecycleState.RESETTING),
+                new StartupRecovery.JournalSummary(false, StartupRecovery.PHASE_DELETION_DONE)).recoveryRequired());
+        assertFalse(StartupRecovery.evaluate(record(LifecycleState.BOOTING),
+                new StartupRecovery.JournalSummary(false, StartupRecovery.PHASE_DELETION_DONE)).recoveryRequired());
+        assertFalse(StartupRecovery.evaluate(record(LifecycleState.OPEN),
+                new StartupRecovery.JournalSummary(false, StartupRecovery.PHASE_DELETION_DONE)).recoveryRequired(),
+                "a finished op whose cycle already reopened is consistent");
     }
 
     @Test

@@ -1,0 +1,3 @@
+[prod] pre-restore verification OK: 33 files
+[prod] rollback complete and re-verified from /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/bigbangexpeditions/backups/05e5d0ce-5a98-4f8d-90ee-394304cafd83
+[prod] next: start server, run validation before any reopen

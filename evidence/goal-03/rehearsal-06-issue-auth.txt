@@ -1,0 +1,6 @@
+WARN: no qualification fingerprint on record (staging tolerated)
+WARN: DIMENSION-scope artifact issued in STAGING — execution will still refuse without PRODUCTION
+Authorization issued: ./bigbangexpeditions/authorizations/71e3d653-ccaf-4bcf-a360-b590f4a0581f.json
+Expires: 1787610297545  Scope: DIMENSION  Generation: 0
+Next: stop server, run scripts/production/execute-reset.sh 71e3d653-ccaf-4bcf-a360-b590f4a0581f
+

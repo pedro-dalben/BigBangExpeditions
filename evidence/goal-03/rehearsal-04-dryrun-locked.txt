@@ -1,0 +1,12 @@
+=== Expedition DRY-RUN (RESET_WOULD_BE_REFUSED) ===
+[WARN] ENVIRONMENT — STAGING: full decision pipeline executes; actual deletion stays disabled
+[PASS] RESET_LOCK — lock available
+[FAIL] LIFECYCLE — sector 'b04' is OPEN, required LOCKED
+[FAIL] PREFLIGHT — SECTOR_STATE: sector 'b04' is OPEN, required: LOCKED
+[WARN] DRIFT — no qualification fingerprint on record (staging tolerated)
+[FAIL] AUTHORIZATION — SECTOR_STATE: sector 'b04' is OPEN, required: LOCKED
+[PASS] TARGETS — confined to dimensions/bigbangexpeditions/expedition (whole-dimension scope)
+[PASS] BACKUP_SPACE — available 612640055296 >= needed 115320234
+[FAIL] EXECUTION — destruction skipped — pipeline refused above
+WARN: ENV_STAGING: staging: full pipeline runs, destructive execution unavailable by design
+

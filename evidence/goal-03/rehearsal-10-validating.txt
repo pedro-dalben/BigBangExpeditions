@@ -1,0 +1,8 @@
+VALIDATING — run baseline compare, then record PASS/FAIL via record-validation.
+
+=== Probe b04[bigbangexpeditions:expedition 128,128 -> 159,159 (1024 chunks)] ===
+Verdict: PASS
+Chunks: 1024 loaded=0
+Players inside: 0
+OPAC: no claims
+BEs: 0 containers=0 spawners=0 entities=0

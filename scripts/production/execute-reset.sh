@@ -31,7 +31,7 @@ mkdir -p "$BBE_ROOT/locks"
     info "$VERIFY_OUT"
 
     journal() {  # recordCompleted <phase>
-        java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+        java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
             "$JOURNAL_DIR" "$AUTH_ID" "$1" >/dev/null
     }
     require_mod_jar
@@ -52,13 +52,14 @@ mkdir -p "$BBE_ROOT/locks"
     fi
 
     # ---- backup ---------------------------------------------------------------
+    mkdir -p "$BBE_ROOT/backups"
     BACKUP_DIR="$BBE_ROOT/backups/$AUTH_ID"
-    if mkdir "$BACKUP_DIR/data" 2>/dev/null; then   # atomic creation = no double backup
-        rmdir "$BACKUP_DIR/data"
+    if mkdir "$BACKUP_DIR" 2>/dev/null; then   # atomic creation = no double backup
+        :
     else
         echo "RESET REFUSED — backup already exists for this plan (rollback first or remove deliberately)"; exit 52
     fi
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "BACKUP_START" >/dev/null
 
     cp "$(dirname "$BBE_ROOT")/bigbangexpeditions/authorizations/$AUTH_ID.json" "$BACKUP_DIR/authorization.json"
@@ -91,12 +92,12 @@ m["manifestChecksum"] = hashlib.sha256(body.encode()).hexdigest()
 open(os.path.join(backup, "backup-manifest.json"), "w").write(json.dumps(m))
 print("[prod] backup manifest:", len(files), "files,", m["totalBytes"], "bytes")
 PYEOF
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "BACKUP_DONE" >/dev/null
     info "backup verified at $BACKUP_DIR"
 
     # ---- deletion (confined to the expedition dimension only) -----------------
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "DELETION_INTENT" >/dev/null
 
     DELETED=0
@@ -107,7 +108,7 @@ PYEOF
         rm -f "$DIM_REAL/$rel" && DELETED=$((DELETED+1))
     done < "$BACKUP_DIR/filelist.txt"
     find "$DIM_REAL" -type d -empty -delete 2>/dev/null || true
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "DELETION_DONE" >/dev/null
     info "deleted $DELETED files under $DIM_REAL"
 
@@ -130,7 +131,7 @@ if reg.get("status") == "RESET_READY":
 else:
     print("[prod] lifecycle status", reg.get("status"), "- left unchanged")
 PYEOF
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
         "$JOURNAL_DIR" "$AUTH_ID" "FINALIZED" >/dev/null
 
     info "RESET COMPLETE for authorization $AUTH_ID"

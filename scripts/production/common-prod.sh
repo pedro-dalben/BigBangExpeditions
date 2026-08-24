@@ -9,9 +9,11 @@ BBE_ROOT="$SERVER_DIR/bigbangexpeditions"
 JOURNAL_DIR="$BBE_ROOT/journal"
 LOCK_FILE="$BBE_ROOT/locks/reset.lock"
 LEDGER_FILE="$BBE_ROOT/authorization-ledger.json"
-CURRENT_FP_FILE="$BBE_ROOT/current-fingerprint.json"
 CONFIG_DIR="$SERVER_DIR/config/bigbangexpeditions"
-MOD_JAR="$(ls "$SERVER_DIR"/mods/bigbangexpeditions-*.jar 2>/dev/null | head -1 || true)"
+CURRENT_FP_FILE="$CONFIG_DIR/current-fingerprint.json"
+MOD_JAR="$(ls "$SERVER_DIR"/mods/[Bb]ig[Bb]ang[Ee]xpeditions-*.jar 2>/dev/null | head -1 || true)"
+GSON_JAR="$(ls "$SERVER_DIR"/libraries/com/google/code/gson/gson/*/gson-*.jar 2>/dev/null | sort -V | tail -1 || true)"
+CLI_CLASSPATH="${MOD_JAR}${GSON_JAR:+:$GSON_JAR}"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 info() { echo "[prod] $*"; }
@@ -28,7 +30,7 @@ verify_auth() {
     [[ "$AUTH_ID" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo "AUTH_REFUSED:malformed id"; return 40; }
     local FP_ARG=""
     [ -f "$CURRENT_FP_FILE" ] && FP_ARG="$CURRENT_FP_FILE"
-    java -cp "$MOD_JAR" com.bigbangcraft.expeditions.reset.VerifyAuthCli \
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.VerifyAuthCli \
         "$BBE_ROOT" "$AUTH_ID" ${FP_ARG:+$FP_ARG} "$LEDGER_FILE"
 }
 

@@ -1,0 +1,14 @@
+validation recorded: PASS — /expedition lifecycle open is now possible
+
+Expedition is OPEN. Generation 1.
+
+
+=== Expedition health ===
+playersMayEnter: YES
+lifecycle: OPEN generation=1
+resetLock: free
+lastOperation: 71e3d653-ccaf-4bcf-a360-b590f4a0581f active=false lastPhase=DELETION_DONE
+pendingAuthorizations: 1
+lastValidationResult: PASS
+rollbackAvailable: 1 backup(s) on disk
+
