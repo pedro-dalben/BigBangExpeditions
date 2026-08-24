@@ -1,27 +1,38 @@
-# Rollback Runbook
+# Rollback Runbook (Goal 03)
 
-Restores the exact pre-reset bytes of `region/`, `entities/`, `poi/` for one
-executed plan.
+Rollback = restore the expedition dimension from the verified backup created
+for one specific authorization, then re-validate before reopening.
 
-```bash
-bash scripts/staging/stop.sh
-bash scripts/staging/rollback-reset.sh <planId>
-bash scripts/staging/start.sh
-/expedition sector status <id>       # confirm state; re-validate if needed
+## Answer first
+
+* Which reset? The authId you pass — every backup lives at
+  `bigbangexpeditions/backups/<authId>/` with `backup-manifest.json` and a copy
+  of the signed authorization.
+* Has it been altered? Verified by sha-256 over every file AND the manifest's
+  own checksum BEFORE anything is restored.
+* Is the server safe? Rollback refuses while any Minecraft process runs or the
+  reset lock is held.
+* Post-state: journal records ROLLBACK_DONE; run validation; only PASS may open.
+
+## Procedure
+
+```text
+1. stop the server
+2. scripts/production/rollback-reset.sh <authId>
+3. start the server
+4. validate (probe + baseline compare)
+5. /expedition lifecycle open   # requires recorded PASS for current cycle
 ```
 
 ## Guarantees
 
-- Refuses without staging sentinel (exit 42) or running server.
-- Verifies EVERY hash in the backup's `SHA256SUMS` **before** touching the
-  world — corrupted backup aborts with exit 54 and changes nothing.
-- Restores only files recorded in that backup.
+* pre-restore verification: missing/resized/rehashed file ⇒ REFUSED;
+* restore is confined to the expedition dimension dir;
+* post-restore re-verification counts failures; non-zero ⇒ explicit failure;
+* the backup directory itself is never modified by rollback.
 
-## Verification performed live
+## When no valid backup exists
 
-Backup `cc8766d2…` restored, then:
-
-```text
-backup  region/r.4.4.mca 0b00d8b00ec4852c705e3b74404a9a87e1815dc309a46048e4ec5d587b7ad0bd
-restored region/r.4.4.mca 0b00d8b00ec4852c705e3b74404a9a87e1815dc309a46048e4ec5d587b7ad0bd
-```
+There is NO rollback point. Do NOT improvise destructive repair; follow
+recovery-runbook.md and treat the dimension as lost until regenerated from a
+freshly issued authorization (the same pipeline as a normal reset).
