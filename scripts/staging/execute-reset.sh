@@ -138,4 +138,29 @@ while IFS= read -r rel; do
 done <<< "$FILES"
 
 echo "[staging] RESET COMPLETE for plan $PLAN_ID"
-echo "[staging] next: start server, run post-reset validation (VALIDATING state), keep backup until PASS"
+
+# mark sector RESETTING in the persistent registry so the next boot must validate
+python3 - "$SERVER_DIR/bigbangexpeditions/sectors.json" "$PLAN_ID" <<'PYEOF'
+import json, sys, os
+reg_path, plan_id = sys.argv[1], sys.argv[2]
+if not os.path.exists(reg_path):
+    print("[staging] no sector registry found — skipping state update")
+    sys.exit(0)
+m = json.load(open(sys.argv[1] if False else reg_path.replace('sectors.json','reset-plans') + '/' + plan_id + '.json'))
+sector_id = m["sectorId"]
+reg = json.load(open(reg_path))
+changed = False
+for s in reg.get("sectors", []):
+    if s["id"] == sector_id and s["status"] == "RESET_PLANNED":
+        s["status"] = "RESETTING"
+        changed = True
+if changed:
+    tmp = reg_path + ".tmp"
+    open(tmp, "w").write(json.dumps(reg, indent=2))
+    os.replace(tmp, reg_path)
+    print("[staging] sector %s -> RESETTING" % sector_id)
+else:
+    print("[staging] sector state not RESET_PLANNED — left unchanged")
+PYEOF
+
+echo "[staging] next: start server, /expedition sector begin-validation b04, then compare; PASS -> /expedition sector open"

@@ -12,7 +12,9 @@ fi
 
 cd "$SERVER_DIR"
 echo "-Xmx6G" > user_jvm_args.txt
-nohup java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.20.1-47.4.0/linux_args.txt nogui \
+ARGS_FILE="libraries/net/minecraftforge/forge/1.20.1-47.4.0/unix_args.txt"
+[ -f "$ARGS_FILE" ] || ARGS_FILE="libraries/net/minecraftforge/forge/1.20.1-47.4.0/linux_args.txt"
+nohup java @user_jvm_args.txt "@$ARGS_FILE" nogui \
     > "$SERVER_DIR/console.out" 2>&1 &
 echo $! > "$PID_FILE"
 info "started pid $(cat "$PID_FILE"); console: $SERVER_DIR/console.out; log: $LOG_FILE"

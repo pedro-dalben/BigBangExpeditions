@@ -30,7 +30,20 @@ for item in mods config defaultconfigs kubejs datapacks; do
 done
 
 info "removing client-only jars from staging mods"
-find mods -iname "*controllable*" -o -iname "*fancymenu*" -o -iname "*oculus*" -o -iname "*embeddium*" | while read -r f; do rm -f "$f"; done
+# Evidence (staging boots 2026-08-24): these fail or crash dedicated servers:
+# drippy/colorwheel (missing client deps), shouldersurfing (client mixin
+# breaks Create 6.0.6 load on DEDICATED_SERVER), sodium family +
+# entity model/texture features + ItemPhysicLite + EMF (client-only).
+find mods -type f \( \
+    -iname "*controllable*" -o -iname "*fancymenu*" -o -iname "*oculus*" \
+    -o -iname "*embeddium*" -o -iname "*drippyloadingscreen*" \
+    -o -iname "*colorwheel*" -o -iname "*shouldersurfing*" \
+    -o -iname "*sodium*" -o -iname "*itemphysic*" \
+    -o -iname "*entity_model_features*" -o -iname "*entity_texture_features*" \
+    -o -iname "*tp_shooting*" -o -iname "*tacz*" \
+    -o -iname "*gundb*" -o -iname "*shotsfired*" \) -delete
+# tp_shooting hard-depends on removed shouldersurfing; tacz is the gun API
+# family (tp_shooting/gundb/shotsfired depend on it and break server load).
 
 info "fetching forge installer"
 mkdir -p .forge-cache
@@ -75,6 +88,32 @@ if entry not in s:
 else:
     print("already present")
 PYEOF
+
+info "configuring OPAC: expedition dimension unclaimable"
+# world/serverconfig may not exist until first boot; patch defaultconfigs too
+for cfg in "$SERVER_DIR/world/serverconfig/openpartiesandclaims-server.toml" \
+           "$SERVER_DIR/defaultconfigs/openpartiesandclaims-server.toml"; do
+    [ -f "$cfg" ] || continue
+    python3 - "$cfg" <<'PYEOF'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+changed = False
+if 'bigbangexpeditions:expedition' not in s and 'claimableDimensionsList = []' in s:
+    s = s.replace('claimableDimensionsList = []',
+                  'claimableDimensionsList = ["bigbangexpeditions:expedition"]')
+    changed = True
+if 'allowExistingClaimsInUnclaimableDimensions = true' in s:
+    s = s.replace('allowExistingClaimsInUnclaimableDimensions = true',
+                  'allowExistingClaimsInUnclaimableDimensions = false')
+    changed = True
+if changed:
+    open(p, 'w').write(s)
+    print('patched:', p)
+else:
+    print('no change needed:', p)
+PYEOF
+done
 
 info "installing latest BigBangExpeditions jar"
 bash "$SCRIPT_DIR/install-mod.sh"
