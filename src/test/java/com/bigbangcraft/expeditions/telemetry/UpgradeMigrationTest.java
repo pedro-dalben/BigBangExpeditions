@@ -40,11 +40,12 @@ class UpgradeMigrationTest {
 
     @Test
     void legacyTelemetryWithoutSchemaVersionLoadsAndNormalizes() throws IOException {
-        Files.createDirectories(dir);
+        Path tdir = dir.resolve("telemetry");
+        Files.createDirectories(tdir);
         // a hypothetical pre-schema draft: no schemaVersion field at all
-        Files.writeString(dir.resolve("gen-" + GEN + ".json"),
+        Files.writeString(tdir.resolve("gen-" + GEN + ".json"),
                 "{\"generation\":" + GEN + ",\"entriesTotal\":3}");
-        var r = new TelemetryStore(dir.resolve("telemetry")).load(GEN);
+        var r = new TelemetryStore(tdir).load(GEN);
         assertEquals(TelemetryStore.Status.AVAILABLE, r.status);
         assertEquals(1, r.record.schemaVersion); // migrated marker on load
         assertEquals(3, r.record.entriesTotal);
