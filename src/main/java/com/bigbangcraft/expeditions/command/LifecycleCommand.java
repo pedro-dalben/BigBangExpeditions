@@ -153,10 +153,14 @@ public final class LifecycleCommand {
         RuntimeServices services = svc(src);
         long start = System.currentTimeMillis();
         try {
+            LifecycleRecord before = services.lifecycle().current();
+            long deadlineForId = before.closingDeadlineEpochMs;
+            int genForId = before.generation;
             var err1 = services.lifecycle().transition(LifecycleState.CLOSING, actor, "immediate close requested");
             if (err1.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err1.get()); return 0; }
 
-            int evacuated = EvacuationService.evacuateAll(src.getServer(), services, actor);
+            var evac = EvacuationService.evacuateAll(src.getServer(), services, actor);
+            int evacuated = evac.count();
             services.lifecycle().transition(LifecycleState.EVACUATING, actor,
                     "evacuated " + evacuated + " player(s)");
             services.lifecycle().clearClosingSchedule();
@@ -177,6 +181,18 @@ public final class LifecycleCommand {
             if (err4.isPresent()) { refuse(src, services, "LIFECYCLE_CLOSE", err4.get()); return 0; }
 
             syncSector(src, LifecycleState.LOCKED);
+            long closedAt = System.currentTimeMillis();
+            try {
+                LifecycleRecord after = services.lifecycle().current();
+                String completionId = com.bigbangcraft.expeditions.event.BbeEvents.completionId(
+                        genForId, deadlineForId, closedAt);
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                        new com.bigbangcraft.expeditions.event.BbeEvents.ExpeditionCompleted(
+                                completionId, after.generation, closedAt, deadlineForId,
+                                evac.participantNames(), evac.participantIds()));
+            } catch (Exception e) {
+                LOG.warn("ExpeditionCompleted post failed (non-fatal): {}", e.toString());
+            }
 
             services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)
                     .states(LifecycleState.OPEN.name(), LifecycleState.LOCKED.name())

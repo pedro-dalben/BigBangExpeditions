@@ -57,4 +57,45 @@ public final class BbeEvents {
             this.durationMinutes = durationMinutes;
         }
     }
+
+    /**
+     * Fired once when an expedition closes successfully (all players extracted,
+     * dimension LOCKED). Posted on the main server thread, server-side only,
+     * immediately after the validated LOCKED transition. Never re-fired on
+     * restart or recovery.
+     *
+     * <p>Stable identity: {@code completionId} is unique per open/close cycle
+     * within one server install and suitable as an idempotency key.
+     * Participants are the players extracted via TELEPORT_OUT this cycle;
+     * stale-marker evictions are not included.
+     */
+    public static class ExpeditionCompleted extends Event {
+        public final String completionId;
+        public final int generation;
+        public final long closedAtEpochMs;
+        public final long closingDeadlineEpochMs;
+        public final java.util.List<String> participantNames;
+        public final java.util.List<java.util.UUID> participantIds;
+
+        public ExpeditionCompleted(String completionId, int generation, long closedAtEpochMs,
+                                 long closingDeadlineEpochMs,
+                                 java.util.List<String> participantNames,
+                                 java.util.List<java.util.UUID> participantIds) {
+            this.completionId = completionId;
+            this.generation = generation;
+            this.closedAtEpochMs = closedAtEpochMs;
+            this.closingDeadlineEpochMs = closingDeadlineEpochMs;
+            this.participantNames = java.util.Collections.unmodifiableList(
+                    new java.util.ArrayList<>(participantNames));
+            this.participantIds = java.util.Collections.unmodifiableList(
+                    new java.util.ArrayList<>(participantIds));
+        }
+    }
+
+    public static String completionId(int generation, long closingDeadlineEpochMs, long closedAtEpochMs) {
+        if (closingDeadlineEpochMs > 0) {
+            return "g" + generation + "-" + closingDeadlineEpochMs;
+        }
+        return "g" + generation + "-immediate-" + closedAtEpochMs;
+    }
 }

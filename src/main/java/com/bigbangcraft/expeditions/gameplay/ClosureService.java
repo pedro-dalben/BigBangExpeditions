@@ -101,11 +101,15 @@ public final class ClosureService {
 
     /** The Goal-03-proven evacuation chain, triggered by deadline instead of by hand. */
     private static void runExtraction(MinecraftServer server, RuntimeServices services,
-                                      GameplayConfig config) throws IOException {
+                                       GameplayConfig config) throws IOException {
         long start = System.currentTimeMillis();
         String actor = "closing-schedule";
+        LifecycleRecord before = services.lifecycle().current();
+        long deadlineForId = before.closingDeadlineEpochMs;
+        int genForId = before.generation;
 
-        int evacuated = EvacuationService.evacuateAll(server, services, actor);
+        var evac = EvacuationService.evacuateAll(server, services, actor);
+        int evacuated = evac.count();
         services.lifecycle().transition(LifecycleState.EVACUATING, actor,
                 "evacuated " + evacuated + " player(s)");
         services.lifecycle().clearClosingSchedule();
@@ -127,6 +131,18 @@ public final class ClosureService {
             return;
         }
         syncSectorLock(server);
+        long closedAt = System.currentTimeMillis();
+        try {
+            LifecycleRecord after = services.lifecycle().current();
+            String completionId = com.bigbangcraft.expeditions.event.BbeEvents.completionId(
+                    genForId, deadlineForId, closedAt);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                    new com.bigbangcraft.expeditions.event.BbeEvents.ExpeditionCompleted(
+                            completionId, after.generation, closedAt, deadlineForId,
+                            evac.participantNames(), evac.participantIds()));
+        } catch (Exception e) {
+            LOG.warn("ExpeditionCompleted post failed (non-fatal): {}", e.toString());
+        }
 
         Broadcast.announce(server, config, "bbe.closing.now");
         services.audit().record(AuditEvent.of("LIFECYCLE_CLOSE", actor)

@@ -42,8 +42,11 @@ public final class EvacuationService {
         return names;
     }
 
+    public record EvacuationResult(int count, java.util.List<String> participantNames,
+                                     java.util.List<java.util.UUID> participantIds) {}
+
     /** Teleports every player inside to overworld spawn and clears markers. */
-    public static int evacuateAll(MinecraftServer server, RuntimeServices services, String actor) throws IOException {
+    public static EvacuationResult evacuateAll(MinecraftServer server, RuntimeServices services, String actor) throws IOException {
         ServerLevel expedition = server.getLevel(
                 com.bigbangcraft.expeditions.integration.lostcities.LostCitiesAdapter.expeditionDimensionKey());
         List<String> inside = playersInside(expedition);
@@ -53,6 +56,8 @@ public final class EvacuationService {
 
         ServerLevel overworld = server.overworld();
         int count = 0;
+        java.util.List<String> participantNames = new java.util.ArrayList<>();
+        java.util.List<java.util.UUID> participantIds = new java.util.ArrayList<>();
         for (Action2 action : actions) {
             ServerPlayer p = findPlayer(server, action.playerName());
             if (action.type() == EvacuationPlan.ActionType.TELEPORT_OUT && p != null) {
@@ -65,6 +70,12 @@ public final class EvacuationService {
                 p.getPersistentData().remove(INSIDE_MARKER);
                 p.getPersistentData().remove(com.bigbangcraft.expeditions.teleport.ReturnPosition.key());
             }
+            if (action.type() == EvacuationPlan.ActionType.TELEPORT_OUT) {
+                participantNames.add(action.playerName());
+                if (p != null && p.getGameProfile() != null) {
+                    try { participantIds.add(p.getUUID()); } catch (Exception ignored) {}
+                }
+            }
             count++;
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                     new com.bigbangcraft.expeditions.event.BbeEvents.PlayerEvacuated(
@@ -74,7 +85,8 @@ public final class EvacuationService {
                     .outcome(action.type() == EvacuationPlan.ActionType.TELEPORT_OUT ? "OK" : "EVICT_ON_JOIN")
                     .detail("mode", action.type().name()));
         }
-        return count;
+        return new EvacuationResult(count, java.util.Collections.unmodifiableList(participantNames),
+                java.util.Collections.unmodifiableList(participantIds));
     }
 
     public static void markInside(ServerPlayer player) {
