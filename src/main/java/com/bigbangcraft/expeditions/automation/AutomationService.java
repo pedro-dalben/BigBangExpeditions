@@ -56,8 +56,6 @@ import java.util.List;
 public final class AutomationService {
     private static final Logger LOG = LogManager.getLogger("BigBangExpeditions/Automation");
     private static final int MAX_CONSECUTIVE_FAILURES = 3;
-    private static final long CLOCK_BACKWARD_TOLERANCE_MS = 5 * 60_000L;
-    private static final long CLOCK_FORWARD_JUMP_MS = 24 * 3600_000L;
 
     private static volatile AutomationService instance;
     private static volatile AutomationConfig config;
@@ -488,14 +486,12 @@ public final class AutomationService {
     // ------------------------------------------------------------- helpers
 
     private void clockGuard(long now) {
-        long last = state.lastObservedWallClockMs;
-        if (last > 0 && !state.clockAnomaly) {
-            if (now < last - CLOCK_BACKWARD_TOLERANCE_MS || now - last > CLOCK_FORWARD_JUMP_MS) {
-                state.clockAnomaly = true;
-                audit("AUTOMATION_CLOCK_ANOMALY", "observed jump; automatic actions suspended"
-                        + " (last=" + last + " now=" + now + ")");
-                post(new BbeEvents.ExpeditionAutomationPaused("clock anomaly"));
-            }
+        if (!state.clockAnomaly
+                && ClockGuard.isAnomalous(state.lastObservedWallClockMs, now)) {
+            state.clockAnomaly = true;
+            audit("AUTOMATION_CLOCK_ANOMALY", "observed jump; automatic actions suspended"
+                    + " (last=" + state.lastObservedWallClockMs + " now=" + now + ")");
+            post(new BbeEvents.ExpeditionAutomationPaused("clock anomaly"));
         }
         if (!state.clockAnomaly) state.lastObservedWallClockMs = now;
     }
