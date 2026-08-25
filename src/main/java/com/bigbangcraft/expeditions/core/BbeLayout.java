@@ -51,6 +51,18 @@ public final class BbeLayout {
         return root(server).resolve("backups");
     }
 
+    public static Path telemetryDir(MinecraftServer server) {
+        return root(server).resolve("telemetry");
+    }
+
+    public static Path cycleArchiveFile(MinecraftServer server) {
+        return root(server).resolve("cycle-history.json");
+    }
+
+    public static Path automationStateFile(MinecraftServer server) {
+        return root(server).resolve("automation-state.json");
+    }
+
     public static Path configDir(MinecraftServer server) {
         return server.getServerDirectory().toPath().resolve("config").resolve("bigbangexpeditions");
     }
