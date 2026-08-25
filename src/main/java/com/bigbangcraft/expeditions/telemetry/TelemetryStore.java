@@ -88,8 +88,11 @@ public final class TelemetryStore {
         }
     }
 
-    /** Older schemas are migrated forward here; v1 is current so only hygiene runs. */
+    /** Older/absent schemas migrate forward here; v1 is current so this stamps + hygiene runs. */
     private void normalize(GenerationTelemetry t) {
+        if (t.schemaVersion < GenerationTelemetry.SCHEMA_VERSION) {
+            t.schemaVersion = GenerationTelemetry.SCHEMA_VERSION; // upgrade-on-touch
+        }
         if (t.uniqueExplorers == null) t.uniqueExplorers = new java.util.HashSet<>();
         if (t.firstEntryChunks == null) t.firstEntryChunks = new java.util.HashSet<>();
         if (t.structures == null) t.structures = new java.util.TreeMap<>();
