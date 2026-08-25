@@ -412,9 +412,49 @@ public final class TelemetryService {
 
     // ------------------------------------------------------------- reads
 
+    /**
+     * STAGING-ONLY synthetic activity injection for live automation campaigns.
+     * Stamps first-entry chunks / container opens / deaths / structure
+     * placements into the CURRENT generation through the exact ingest path.
+     * Callers must have already refused non-staging environments.
+     */
+    public synchronized String stagingInject(int chunks, int opens, int deaths, int structures) {
+        if (!usable() || current == null) return "telemetry unavailable";
+        long now = System.currentTimeMillis();
+        int gen = current.generation;
+        java.util.UUID synthetic = java.util.UUID.nameUUIDFromBytes(
+                ("staging-seed-" + gen).getBytes());
+        for (int i = 0; i < chunks; i++) {
+            current.recordChunkFirstEntry(java.util.concurrent.ThreadLocalRandom.current().nextLong(),
+                    gen, now);
+        }
+        for (int i = 0; i < opens; i++) {
+            current.recordContainerOpen(synthetic, gen, now);
+        }
+        for (int i = 0; i < deaths; i++) {
+            current.recordDeath(synthetic, gen, now);
+        }
+        for (int i = 0; i < structures; i++) {
+            current.recordStructure("staging:simulated_building",
+                    java.util.concurrent.ThreadLocalRandom.current().nextLong(), gen, now);
+        }
+        dirty = true;
+        flushNow();
+        audit("TELEMETRY_STAGING_SEED", "gen=" + gen + " chunks=" + chunks
+                + " opens=" + opens + " deaths=" + deaths + " structures=" + structures);
+        return null;
+    }
+
     public static boolean usable() {
         TelemetryService s = instance;
         return s != null && s.availability == TelemetrySnapshot.Availability.AVAILABLE && s.current != null;
+    }
+
+    /** Static staging seam: delegates to the live instance. */
+    public static String stagingInjectStatic(int chunks, int opens, int deaths, int structures) {
+        TelemetryService s = instance;
+        if (s == null) return "telemetry service unavailable";
+        return s.stagingInject(chunks, opens, deaths, structures);
     }
 
     /** Internal read model for engine/commands (requirement 58). */

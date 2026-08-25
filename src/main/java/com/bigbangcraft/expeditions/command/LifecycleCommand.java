@@ -63,6 +63,9 @@ public final class LifecycleCommand {
                                 .executes(ctx -> cancelReset(ctx.getSource())))
                         .then(Commands.literal("dryrun")
                                 .executes(ctx -> dryRun(ctx.getSource())))
+                        .then(Commands.literal("record-qualification")
+                                .requires(s -> s.hasPermission(3))
+                                .executes(ctx -> recordQualification(ctx.getSource())))
                         .then(Commands.literal("issue-authorization")
                                 .requires(s -> s.hasPermission(3))
                                 .executes(ctx -> issueAuthorization(ctx.getSource(), null))
@@ -355,6 +358,31 @@ public final class LifecycleCommand {
     // ------------------------------------------------------------------ dry-run
 
     /** Full production decision pipeline with destruction stubbed. Read-only. */
+    /**
+     * Operator revalidation after an intentional environment change (Goal 03
+     * drift policy: REQUIRE_REVALIDATION must be resolvable without file
+     * hand-editing). Records the CURRENT install fingerprint as the new
+     * qualification baseline and exports it for offline verification.
+     * Audited; never touches lifecycle state or authorizations.
+     */
+    private static int recordQualification(CommandSourceStack src) {
+        try {
+            var fp = com.bigbangcraft.expeditions.env.FingerprintCollector.collect(src.getServer());
+            var configDir = com.bigbangcraft.expeditions.core.BbeLayout.configDir(src.getServer());
+            com.bigbangcraft.expeditions.reset.QualificationStore.saveQualification(configDir, fp);
+            com.bigbangcraft.expeditions.reset.QualificationStore.exportCurrent(configDir, fp);
+            svc(src).audit().record(com.bigbangcraft.expeditions.audit.AuditEvent
+                    .of("QUALIFICATION_RECORDED", src.getTextName())
+                    .outcome("OK").detail("shortHash", fp.shortHash()));
+            src.sendSuccess(() -> Component.literal(
+                    "Qualification fingerprint recorded: " + fp.shortHash()), true);
+            return 1;
+        } catch (Exception e) {
+            src.sendFailure(Component.literal("qualification recording failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
     private static int dryRun(CommandSourceStack src) {
         long start = System.currentTimeMillis();
         try {

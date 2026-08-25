@@ -386,6 +386,43 @@ public final class AutomationService {
 
     // ------------------------------------------------------------- overrides
 
+    /**
+     * Staging-only synthetic activity seeding for live automation campaigns.
+     * FAIL-CLOSED: refuses unless environment.properties explicitly declares
+     * environment=staging (missing file / production / dry-run all refuse).
+     */
+    public synchronized String seedSyntheticActivity(int chunks, int opens, int deaths, int structures) {
+        String envErr = requireStaging();
+        if (envErr != null) return envErr;
+        if (chunks < 0 || opens < 0 || deaths < 0 || structures < 0
+                || chunks > 200_000 || opens > 200_000 || deaths > 100_000 || structures > 50_000) {
+            return "seed magnitudes out of range";
+        }
+        return com.bigbangcraft.expeditions.telemetry.TelemetryService.stagingInjectStatic(
+                chunks, opens, deaths, structures);
+    }
+
+    private String requireStaging() {
+        try {
+            java.nio.file.Path envFile = BbeLayout.configDir(server).resolve("environment.properties");
+            if (!java.nio.file.Files.isRegularFile(envFile)) {
+                return "refused: no environment.properties (not an explicit staging install)";
+            }
+            for (String line : java.nio.file.Files.readAllLines(envFile)) {
+                String t = line.trim();
+                if (t.startsWith("#") || !t.contains("=")) continue;
+                String[] kv = t.split("=", 2);
+                if (kv[0].trim().equals("environment")) {
+                    if (kv[1].trim().equalsIgnoreCase("staging")) return null;
+                    return "refused: environment=" + kv[1].trim() + " (staging only)";
+                }
+            }
+            return "refused: environment key absent";
+        } catch (IOException e) {
+            return "refused: environment unreadable";
+        }
+    }
+
     public synchronized String approve(String actor) {
         if (state.pending == null) return "no pending automation decision";
         if (!state.pending.policyFingerprint.equals(policyFingerprint)) {

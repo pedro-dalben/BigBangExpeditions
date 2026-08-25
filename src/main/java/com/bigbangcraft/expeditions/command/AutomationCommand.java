@@ -52,7 +52,17 @@ public final class AutomationCommand {
                 .then(Commands.literal("reload").requires(s -> s.hasPermission(3))
                         .executes(ctx -> reload(ctx.getSource())))
                 .then(Commands.literal("clock-clear").requires(s -> s.hasPermission(3))
-                        .executes(ctx -> clockClear(ctx.getSource()))));
+                        .executes(ctx -> clockClear(ctx.getSource())))
+                .then(Commands.literal("seed-sim").requires(s -> s.hasPermission(3))
+                        .then(Commands.argument("chunks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0))
+                                .then(Commands.argument("opens", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0))
+                                        .then(Commands.argument("deaths", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0))
+                                                .then(Commands.argument("structures", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0))
+                                                        .executes(ctx -> seedSim(ctx.getSource(),
+                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "chunks"),
+                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "opens"),
+                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "deaths"),
+                                                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "structures")))))))));
     }
 
     // ---------------------------------------------------------------- read
@@ -247,6 +257,19 @@ public final class AutomationCommand {
     private static int clockClear(CommandSourceStack src) {
         return done(src, AutomationService.get() == null ? "automation unavailable"
                 : AutomationService.get().clearClockAnomaly(sourceName(src)), "clock anomaly cleared");
+    }
+
+    /** STAGING-ONLY: seed synthetic activity for live automation campaigns. */
+    private static int seedSim(CommandSourceStack src, int chunks, int opens, int deaths, int structures) {
+        AutomationService svc = AutomationService.get();
+        if (svc == null) {
+            src.sendFailure(Component.literal("automation unavailable"));
+            return 0;
+        }
+        String err = svc.seedSyntheticActivity(chunks, opens, deaths, structures);
+        return done(src, err,
+                String.format("seeded gen activity: chunks=%d opens=%d deaths=%d structures=%d",
+                        chunks, opens, deaths, structures));
     }
 
     // ---------------------------------------------------------------- utils

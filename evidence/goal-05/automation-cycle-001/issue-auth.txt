@@ -1,0 +1,5 @@
+--- attempt 1
+WARN: DIMENSION-scope artifact issued in STAGING — execution will still refuse without PRODUCTION
+Authorization issued: ./bigbangexpeditions/authorizations/8c735c95-50b0-4f04-995a-6ff3c99cbd73.json
+Expires: 1787704042293  Scope: DIMENSION  Generation: 2
+Next: stop server, run scripts/production/execute-reset.sh 8c735c95-50b0-4f04-995a-6ff3c99cbd73

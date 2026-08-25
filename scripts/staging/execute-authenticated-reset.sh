@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# execute-authenticated-reset.sh — STAGING whole-dimension destructive reset
+# with PRODUCTION-GRADE guarantees (Goal 05 campaign route).
+#
+# Mirrors scripts/production/execute-reset.sh step-for-step: flock ->
+# VerifyAuthCli -> journal phases -> confined whole-dimension backup+manifest
+# -> confined deletion -> lifecycle RESETTING -> FINALIZED -> ledger consume.
+# The ONLY difference is the environment gate: staging sentinel instead of the
+# production dual-signal check. Safety invariants identical.
+#
+# Usage: execute-authenticated-reset.sh <authId>
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+require_staging_sentinel
+require_server_stopped
+
+BBE_ROOT="$SERVER_DIR/bigbangexpeditions"
+JOURNAL_DIR="$BBE_ROOT/journal"
+LOCK_FILE="$BBE_ROOT/locks/reset.lock"
+LEDGER_FILE="$BBE_ROOT/authorization-ledger.json"
+MOD_JAR="$(ls "$SERVER_DIR"/mods/[Bb]ig[Bb]ang[Ee]xpeditions-*.jar 2>/dev/null | head -1 || true)"
+GSON_JAR="$(ls "$SERVER_DIR"/libraries/com/google/code/gson/gson/*/gson-*.jar 2>/dev/null | sort -V | tail -1 || true)"
+CLI_CLASSPATH="${MOD_JAR}${GSON_JAR:+:$GSON_JAR}"
+
+AUTH_ID="${1:?usage: execute-authenticated-reset.sh <authId>}"
+[[ "$AUTH_ID" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo "RESET REFUSED — malformed auth id"; exit 45; }
+
+[ -n "$MOD_JAR" ] && [ -f "$MOD_JAR" ] || die "bigbangexpeditions jar not found in $SERVER_DIR/mods"
+
+mkdir -p "$BBE_ROOT/locks"
+(
+    flock -n 200 || { echo "RESET REFUSED — another executor holds the reset lock"; exit 48; }
+
+    # ---- authorization gate (single canonical Java implementation) ----------
+    set +e
+    VERIFY_OUT="$(java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.VerifyAuthCli \
+        "$BBE_ROOT" "$AUTH_ID" "$BBE_ROOT/../config/bigbangexpeditions/current-fingerprint.json" \
+        "$LEDGER_FILE" DIMENSION 2>&1)"
+    VERIFY_RC=$?
+    set -e
+    [ $VERIFY_RC -eq 0 ] || { echo "RESET REFUSED — $VERIFY_OUT"; exit 49; }
+    info "$VERIFY_OUT"
+
+    journal() {
+        java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.OperationJournalCli \
+            "$JOURNAL_DIR" "$AUTH_ID" "$1" >/dev/null
+    }
+    journal "AUTH_VERIFIED"
+
+    DIM_REAL="$(python3 - "$SERVER_DIR/world" <<'PYEOF'
+import os, sys
+world = sys.argv[1]
+dim = os.path.join(world, "dimensions", "bigbangexpeditions", "expedition")
+real = os.path.realpath(dim)
+if not real.startswith(os.path.realpath(world) + os.sep):
+    print("REFUSED")
+else:
+    print(real)
+PYEOF
+)"
+    [ -n "$DIM_REAL" ] && [ "$DIM_REAL" != "REFUSED" ] || {
+        echo "RESET REFUSED — dimension dir derivation/confinement failed"; exit 50;
+    }
+    info "target confined: $DIM_REAL"
+
+    # ---- disk space ----------------------------------------------------------
+    AVAIL_KB=$(df -kP "$SERVER_DIR" | awk 'NR==2{print $4}')
+    DIM_SIZE_KB=$(du -sk "$DIM_REAL" 2>/dev/null | cut -f1 || echo 0)
+    NEEDED=$(( DIM_SIZE_KB * 2 + 10240 ))
+    if [ "$AVAIL_KB" -lt "$NEEDED" ]; then
+        echo "RESET REFUSED — insufficient disk for backup (need ~${NEEDED}KB, avail ${AVAIL_KB}KB)"; exit 51
+    fi
+
+    # ---- backup ---------------------------------------------------------------
+    mkdir -p "$BBE_ROOT/backups"
+    BACKUP_DIR="$BBE_ROOT/backups/$AUTH_ID"
+    if mkdir "$BACKUP_DIR" 2>/dev/null; then :; else
+        echo "RESET REFUSED — backup already exists for this auth (rollback first or remove deliberately)"; exit 52
+    fi
+    journal "BACKUP_START"
+
+    cp "$BBE_ROOT/authorizations/$AUTH_ID.json" "$BACKUP_DIR/authorization.json"
+    ( cd "$DIM_REAL" && find . -type f ! -name SHA256SUMS ! -name backup-manifest.json | sed 's|^\./||' ) > "$BACKUP_DIR/filelist.txt"
+    while IFS= read -r rel; do
+        [ -f "$DIM_REAL/$rel" ] || continue
+        mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
+        cp "$DIM_REAL/$rel" "$BACKUP_DIR/$rel"
+    done < "$BACKUP_DIR/filelist.txt"
+
+    python3 - "$BACKUP_DIR" "$AUTH_ID" <<'PYEOF'
+import hashlib, json, os, sys
+backup, auth_id = sys.argv[1], sys.argv[2]
+files = []
+for root, _, names in os.walk(backup):
+    for n in names:
+        if n in ("SHA256SUMS", "backup-manifest.json"): continue
+        p = os.path.join(root, n)
+        rel = os.path.relpath(p, backup).replace(os.sep, "/")
+        data = open(p, "rb").read()
+        files.append({"path": rel,
+                      "sha256": hashlib.sha256(data).hexdigest(),
+                      "bytes": len(data)})
+auth = json.load(open(os.path.join(backup, "..", "..", "authorizations", auth_id + ".json")))
+fp = auth.get("installFingerprint") or {}
+m = {"formatVersion": 1, "backupId": auth_id,
+     "authorizationSha256": auth.get("authChecksum"),
+     "lifecycleGeneration": auth.get("generationAtIssue", -1),
+     "bbeVersion": fp.get("bbeVersion", "?"),
+     "minecraftVersion": fp.get("minecraftVersion", "?"),
+     "forgeVersion": fp.get("forgeVersion", "?"),
+     "createdAtEpochMs": __import__("time").time_ns() // 1_000_000,
+     "files": files, "totalBytes": sum(f["bytes"] for f in files)}
+body = json.dumps(m, sort_keys=True)
+m["manifestChecksum"] = hashlib.sha256(body.encode()).hexdigest()
+open(os.path.join(backup, "backup-manifest.json"), "w").write(json.dumps(m))
+print("[staging-auth] backup manifest:", len(files), "files,", m["totalBytes"], "bytes")
+PYEOF
+    journal "BACKUP_DONE"
+    info "backup verified at $BACKUP_DIR"
+
+    # ---- deletion (confined to the expedition dimension only) -----------------
+    journal "DELETION_INTENT"
+
+    DELETED=0
+    while IFS= read -r rel; do
+        case "$rel" in
+            ..*|*../*|/*) die "confinement violation: $rel" ;;
+        esac
+        rm -f "$DIM_REAL/$rel" && DELETED=$((DELETED+1))
+    done < "$BACKUP_DIR/filelist.txt"
+    find "$DIM_REAL" -type d -empty -delete 2>/dev/null || true
+    journal "DELETION_DONE"
+    info "deleted $DELETED files under $DIM_REAL"
+
+    # ---- lifecycle bookkeeping ----------------------------------------------
+    LIFECYCLE="$BBE_ROOT/lifecycle.json"
+    python3 - "$LIFECYCLE" <<'PYEOF'
+import json, os, sys
+p = sys.argv[1]
+if not os.path.isfile(p):
+    print("[staging-auth] no lifecycle file — skipping"); sys.exit(0)
+reg = json.load(open(p))
+if reg.get("status") == "RESET_READY":
+    reg["status"] = "RESETTING"
+    reg["lastChangeReason"] = "offline executor completed deletion"
+    reg.setdefault("recent", []).append({"from": "RESET_READY", "to": "RESETTING", "by": "execute-authenticated-reset", "reason": "deletion done"})
+    tmp = p + ".tmp"
+    open(tmp, "w").write(json.dumps(reg, indent=2))
+    os.replace(tmp, p)
+    print("[staging-auth] lifecycle -> RESETTING")
+else:
+    print("[staging-auth] lifecycle status", reg.get("status"), "- left unchanged")
+PYEOF
+    journal "FINALIZED"
+
+    # single-use: consume the authorization only after full success
+    java -cp "$CLI_CLASSPATH" com.bigbangcraft.expeditions.reset.AuthorizationLedgerCli \
+        "$LEDGER_FILE" "$AUTH_ID" consume >/dev/null
+
+    info "RESET COMPLETE for authorization $AUTH_ID"
+    info "next: start server — startup gate resumes BOOTING->VALIDATING; record-validation PASS then /expedition lifecycle open"
+    exit 0
+) 200>"$LOCK_FILE"

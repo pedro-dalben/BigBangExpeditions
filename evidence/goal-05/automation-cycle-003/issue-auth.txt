@@ -1,0 +1,7 @@
+--- attempt 1
+REFUSED: PURGE_ACK_REQUIRED: player additions coke_vending_machine(+1), porpsi_vending_machine(+1), cannon(+1), lootr_chest(+1), blast_furnace(+1) +1 more types — re-run with purge manifest hash ab07a317f529
+REFUSED: PURGE_ACK_REQUIRED: player additions coke_vending_machine(+1), porpsi_vending_machine(+1), cannon(+1), lootr_chest(+1), blast_furnace(+1) +1 more types — re-run with purge manifest hash ab07a317f529
+WARN: DIMENSION-scope artifact issued in STAGING — execution will still refuse without PRODUCTION
+Authorization issued: ./bigbangexpeditions/authorizations/9b5a8b90-d75a-40a5-a355-94b5fe339e75.json
+Expires: 1787704604754  Scope: DIMENSION  Generation: 4
+Next: stop server, run scripts/production/execute-reset.sh 9b5a8b90-d75a-40a5-a355-94b5fe339e75

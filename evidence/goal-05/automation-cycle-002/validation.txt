@@ -1,0 +1,2 @@
+validation recorded: PASS — /expedition lifecycle open is now possible
+
