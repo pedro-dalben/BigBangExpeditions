@@ -1,0 +1,7 @@
+--- attempt 1
+REFUSED: PURGE_ACK_REQUIRED: player additions blast_furnace(+1), campfire(+1) — re-run with purge manifest hash 30b17219e58d
+REFUSED: PURGE_ACK_REQUIRED: player additions blast_furnace(+1), campfire(+1) — re-run with purge manifest hash 30b17219e58d
+WARN: DIMENSION-scope artifact issued in STAGING — execution will still refuse without PRODUCTION
+Authorization issued: ./bigbangexpeditions/authorizations/52cf6328-bfa6-48a4-a43a-70e3d71c95e0.json
+Expires: 1787706630216  Scope: DIMENSION  Generation: 11
+Next: stop server, run scripts/production/execute-reset.sh 52cf6328-bfa6-48a4-a43a-70e3d71c95e0

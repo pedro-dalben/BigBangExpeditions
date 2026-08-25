@@ -71,7 +71,7 @@ public final class SectorCommand {
                                         .then(Commands.argument("baselineId", com.mojang.brigadier.arguments.StringArgumentType.string())
                                                 .executes(ctx -> attachBaseline(ctx.getSource(),
                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id"),
-                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId")))))))
+                                                         com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "baselineId"))))))
                         .then(Commands.literal("rename")
                                 .requires(s -> s.hasPermission(2))
                                 .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
@@ -122,7 +122,7 @@ public final class SectorCommand {
                                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minX"),
                                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "minZ"),
                                                                                         com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxX"),
-                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxZ")))))))))));
+                                                                                        com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "maxZ"))))))))))));
     }
 
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> idArg(

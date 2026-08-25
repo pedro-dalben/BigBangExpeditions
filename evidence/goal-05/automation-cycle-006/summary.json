@@ -1,0 +1,9 @@
+{
+  "goal": "05", "cycle": 6, "result": "PASS",
+  "closureDecisionBy": "automation:AUTOMATIC_CLOSURE",
+  "authId": "5263d6cb-b7c2-4ed5-a07b-9ef12eb259ff",
+  "resetDurationSec": 1, "regenSettleSec": 125,
+  "detail": "reference established", "generationAfterReopen": 8,
+  "telemetryDirAfterReopen": "gen-7.json gen-8.json ",
+  "referenceBaseline": "none"
+}
