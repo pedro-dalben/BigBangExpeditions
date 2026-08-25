@@ -98,4 +98,39 @@ public final class BbeEvents {
         }
         return "g" + generation + "-immediate-" + closedAtEpochMs;
     }
+
+    // ------------------------------------------------------ Goal 05 events
+
+    /** Health verdict changed for the current generation (advisory signal). */
+    public static class ExpeditionHealthChanged extends Event {
+        public final int generation;
+        public final String health; // HEALTHY / ACTIVE / DECLINING / DEPLETED / UNKNOWN
+        public final double score;
+        public ExpeditionHealthChanged(int generation, String health, double score) {
+            this.generation = generation;
+            this.health = health;
+            this.score = score;
+        }
+    }
+
+    /** Matured renewal recommendation — fired once per maturation, never repeatedly. */
+    public static class ExpeditionRenewalRecommended extends Event {
+        public final int generation;
+        public final double score;
+        public final java.util.List<String> reasons;
+        public final String trigger; // DEPLETION | MAX_AGE
+        public ExpeditionRenewalRecommended(int generation, double score,
+                                            java.util.List<String> reasons, String trigger) {
+            this.generation = generation;
+            this.score = score;
+            this.reasons = java.util.Collections.unmodifiableList(new java.util.ArrayList<>(reasons));
+            this.trigger = trigger;
+        }
+    }
+
+    /** Automation paused itself or by operator — integrations must not expect decisions. */
+    public static class ExpeditionAutomationPaused extends Event {
+        public final String reason;
+        public ExpeditionAutomationPaused(String reason) { this.reason = reason; }
+    }
 }
