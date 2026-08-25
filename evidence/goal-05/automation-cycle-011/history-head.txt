@@ -1,0 +1,4 @@
+completed cycles: 12 (bounded archive cap 50)
+gen 3 — 0d 0h — expedition-closed (closure-service) — explorers 0 — chunks 1024 — deaths 25 — reset=PENDING validation=PENDING
+gen 4 — 0d 0h — expedition-closed (closure-service) — explorers 0 — chunks 1024 — deaths 25 — reset=PENDING validation=PENDING
+gen 5 — 0d 0h — expedition-closed (closure-service) — explorers 0 — chunks 1024 — deaths 25 — reset=PENDING validation=PENDING

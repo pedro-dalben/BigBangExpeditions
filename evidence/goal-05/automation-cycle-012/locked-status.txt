@@ -1,0 +1,13 @@
+=== Expedition lifecycle ===
+status: LOCKED (entry BLOCKED)
+generation: 13
+activeAuthorization: 36df017c-c297-497a-b76c-8519d40acf50
+lastValidationResult: PASS
+lastChange: dimension locked
+opened: 1787685553409  lastReset: 1787685553409
+recent: 1787685553374 VALIDATING->VALIDATING by=Rcon validation PASS
+recent: 1787685553409 VALIDATING->OPEN by=Rcon validated reopen
+recent: 1787685557034 OPEN->CLOSING by=automation:AUTOMATIC_CLOSURE closing scheduled until 1787685617034
+recent: 1787685618091 CLOSING->EVACUATING by=closing-schedule evacuated 0 player(s)
+recent: 1787685618141 EVACUATING->LOCKED by=closing-schedule dimension locked
+

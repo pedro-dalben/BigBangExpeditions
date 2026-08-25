@@ -1,0 +1,17 @@
+=== Baseline Compare ===
+before: g05r13 @ 2026-08-25T19:40:11.435079081Z
+after:  g05r13cmp @ 2026-08-25T19:41:50.487707611Z
+bounds bigbangexpeditions:expedition 128,128 -> 159,159 (chunks 1024)
+blockEntityCount: 0 (unchanged)
+containerCount: 0 (unchanged)
+spawnerCount: 0 (unchanged)
+entityCount: 0 (unchanged)
+loadedChunks: 0 (unchanged)
+playersInside: 0 (unchanged)
+opacIntersecting: 0 (unchanged)
+BE by type: unchanged
+BE by ns: unchanged
+warnings before: []
+warnings after: []
+
+

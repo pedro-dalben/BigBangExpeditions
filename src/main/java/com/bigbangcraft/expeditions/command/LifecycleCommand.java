@@ -1,6 +1,7 @@
 package com.bigbangcraft.expeditions.command;
 
 import com.bigbangcraft.expeditions.audit.AuditEvent;
+import com.bigbangcraft.expeditions.core.BbeLayout;
 import com.bigbangcraft.expeditions.core.RuntimeServices;
 import com.bigbangcraft.expeditions.lifecycle.EntryDecision;
 import com.bigbangcraft.expeditions.lifecycle.EvacuationService;
@@ -114,6 +115,30 @@ public final class LifecycleCommand {
     }
 
     /** Best-effort sector-registry mirror of the dimension lifecycle. */
+    /**
+     * Completes the cycle-summary evidence chain (Goal 05 requirement 45):
+     * a recorded validation stamps the archived summary for the CURRENT
+     * generation so admin history shows reset/validation outcomes, not
+     * eternal PENDING. Best-effort; absence of an archive entry is normal
+     * for pre-Goal-05 closes.
+     */
+    private static void reflectValidationIntoHistory(CommandSourceStack src, String result) {
+        try {
+            int gen = svc(src).lifecycle().current().generation;
+            var archiveStore = new com.bigbangcraft.expeditions.telemetry.CycleArchiveStore(
+                    BbeLayout.cycleArchiveFile(src.getServer()));
+            var archive = archiveStore.loadTolerant();
+            var s = archive.byGeneration(gen);
+            if (s == null) return;
+            s.validationResult = result;
+            if ("PASS".equals(result) && "PENDING".equals(s.resetResult)) s.resetResult = "PASS";
+            archive.update(s);
+            archiveStore.save(archive);
+        } catch (Exception ignored) {
+            // history is advisory-grade; never block the validation command
+        }
+    }
+
     private static void syncSector(CommandSourceStack src, LifecycleState lifecycleState) {
         try {
             var view = com.bigbangcraft.expeditions.reset.ProductionResetFlow.sectorView(src.getServer());
@@ -241,6 +266,7 @@ public final class LifecycleCommand {
                     .outcome(result));
             send(src, "validation recorded: " + result
                     + (result.equals("PASS") ? " — /expedition lifecycle open is now possible" : " — expedition FAILED"));
+            reflectValidationIntoHistory(src, result);
             return 1;
         } catch (IOException e) {
             src.sendFailure(Component.literal("record-validation failed: " + e.getMessage()));

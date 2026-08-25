@@ -1,6 +1,7 @@
 package com.bigbangcraft.expeditions.telemetry;
 
 import com.bigbangcraft.expeditions.automation.AutomationConfig;
+import com.bigbangcraft.expeditions.automation.AutomationService;
 import com.bigbangcraft.expeditions.core.BbeLayout;
 import com.bigbangcraft.expeditions.event.BbeEvents;
 import com.bigbangcraft.expeditions.integration.lostcities.LostCitiesAdapter;
@@ -517,9 +518,11 @@ public final class TelemetryService {
     }
 
     static AutomationConfig config() {
-        AutomationConfig c = config;
-        if (c == null) c = AutomationConfig.defaults();
-        return c;
+        // single source of truth: AutomationService owns load/reload lifecycle
+        AutomationConfig c = AutomationService.config();
+        if (c != null) return c;
+        AutomationConfig fallback = config;
+        return fallback == null ? AutomationConfig.defaults() : fallback;
     }
 
     static void configForTests(AutomationConfig c) {

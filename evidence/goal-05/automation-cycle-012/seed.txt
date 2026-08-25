@@ -1,0 +1,4 @@
+seeded gen activity: chunks=1000 opens=800 deaths=20 structures=400
+
+seeded gen activity: chunks=24 opens=200 deaths=5 structures=400
+

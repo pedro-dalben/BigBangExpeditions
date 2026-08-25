@@ -1,0 +1,7 @@
+--- attempt 1
+REFUSED: PURGE_ACK_REQUIRED: player additions coke_vending_machine(+1), porpsi_vending_machine(+1) — re-run with purge manifest hash ff2d0eb32928
+REFUSED: PURGE_ACK_REQUIRED: player additions coke_vending_machine(+1), porpsi_vending_machine(+1) — re-run with purge manifest hash ff2d0eb32928
+WARN: DIMENSION-scope artifact issued in STAGING — execution will still refuse without PRODUCTION
+Authorization issued: ./bigbangexpeditions/authorizations/8844b28e-b16a-41d1-8070-cc4352afeef0.json
+Expires: 1787707221370  Scope: DIMENSION  Generation: 13
+Next: stop server, run scripts/production/execute-reset.sh 8844b28e-b16a-41d1-8070-cc4352afeef0
