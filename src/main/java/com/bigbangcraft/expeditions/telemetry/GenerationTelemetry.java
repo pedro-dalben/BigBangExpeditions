@@ -65,6 +65,9 @@ public final class GenerationTelemetry {
     public int peakConcurrentInside;
     public long lastActivityEpochMs;
 
+    /** Chunks actually probed for structure references (ingest coverage counter). */
+    public long probeChunks;
+
     /** Data-quality flags: CHUNK_SET_SATURATED, UNIQUE_SET_SATURATED, STRUCTURE_TYPES_SATURATED. */
     public List<String> qualityFlags = new ArrayList<>();
 
@@ -140,6 +143,7 @@ public final class GenerationTelemetry {
     /** @return true when this chunk was a genuine first entry (dedup by set). */
     public boolean recordChunkFirstEntry(long packedChunk, int eventGeneration, long nowEpochMs) {
         if (!acceptsGeneration(eventGeneration)) return false;
+        probeChunks = Saturation.inc(probeChunks);
         if (firstEntryChunks.contains(packedChunk)) return false;
         if (firstEntryChunks.size() >= CHUNK_CAP) {
             firstEntryOverflow = Saturation.inc(firstEntryOverflow);

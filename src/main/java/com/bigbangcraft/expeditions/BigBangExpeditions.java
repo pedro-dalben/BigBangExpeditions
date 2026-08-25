@@ -33,6 +33,7 @@ public class BigBangExpeditions {
         MinecraftForge.EVENT_BUS.register(new StartupGate());
         MinecraftForge.EVENT_BUS.register(DimensionTravelGate.class);
         MinecraftForge.EVENT_BUS.register(ClosureService.class);
+        MinecraftForge.EVENT_BUS.register(com.bigbangcraft.expeditions.telemetry.TelemetryService.class);
         MinecraftForge.EVENT_BUS.register(new com.bigbangcraft.expeditions.player.RespawnRedirect());
         LOG.info("BigBangExpeditions init — lifecycle-aware expedition management");
     }
