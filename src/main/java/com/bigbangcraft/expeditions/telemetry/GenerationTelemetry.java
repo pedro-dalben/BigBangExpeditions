@@ -184,7 +184,9 @@ public final class GenerationTelemetry {
     public void observeConcurrentInside(int concurrent, int eventGeneration, long nowEpochMs) {
         if (!acceptsGeneration(eventGeneration)) return;
         if (concurrent > peakConcurrentInside) peakConcurrentInside = Math.min(concurrent, Saturation.CEILING > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Saturation.CEILING);
-        touchActivity(nowEpochMs);
+        // Deliberately NOT touching lastActivityEpochMs: presence is not activity.
+        // An AFK player inside the dimension must never keep a dead expedition
+        // looking alive (exploit resistance, requirement 38/FN1).
     }
 
     public void markClosed(long epochMs) {
