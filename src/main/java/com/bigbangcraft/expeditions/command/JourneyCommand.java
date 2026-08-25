@@ -47,6 +47,12 @@ public final class JourneyCommand {
                     Translations.t("bbe.status.line", phrase)), false);
             src.sendSuccess(() -> Component.literal(
                     Translations.t("bbe.status.generation", r.generation)), false);
+            String phase = com.bigbangcraft.expeditions.automation.AutomationService.playerPhase();
+            if (phase != null) {
+                src.sendSuccess(() -> Component.literal(
+                        Translations.t("bbe.status.phase",
+                                Translations.t("bbe.phase." + phase))), false);
+            }
             if (r.status != com.bigbangcraft.expeditions.lifecycle.LifecycleState.OPEN) {
                 src.sendSuccess(() -> Component.literal(
                         Translations.t("bbe.entry.blocked.unavailable")), false);

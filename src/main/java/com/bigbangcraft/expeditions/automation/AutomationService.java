@@ -582,6 +582,23 @@ public final class AutomationService {
         return instance;
     }
 
+    /**
+     * Player-facing expedition phase (requirement 33): derived ONLY from real
+     * observable automation state; null when nothing observable exists
+     * (MANUAL mode with no evaluations, or automation unavailable).
+     */
+    public static String playerPhase() {
+        AutomationService s = instance;
+        if (s == null) return null;
+        return switch (s.state.lastBroadcastHealth) {
+            case "HEALTHY" -> "FRESH";
+            case "ACTIVE" -> "ACTIVE";
+            case "DECLINING" -> "DECLINING";
+            case "DEPLETED" -> "FINAL_DAYS";
+            default -> null;
+        };
+    }
+
     public static AutomationConfig config() {
         return config;
     }

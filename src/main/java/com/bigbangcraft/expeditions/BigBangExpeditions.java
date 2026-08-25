@@ -34,6 +34,7 @@ public class BigBangExpeditions {
         MinecraftForge.EVENT_BUS.register(DimensionTravelGate.class);
         MinecraftForge.EVENT_BUS.register(ClosureService.class);
         MinecraftForge.EVENT_BUS.register(com.bigbangcraft.expeditions.telemetry.TelemetryService.class);
+        MinecraftForge.EVENT_BUS.register(com.bigbangcraft.expeditions.automation.AutomationService.class);
         MinecraftForge.EVENT_BUS.register(new com.bigbangcraft.expeditions.player.RespawnRedirect());
         LOG.info("BigBangExpeditions init — lifecycle-aware expedition management");
     }
@@ -50,6 +51,7 @@ public class BigBangExpeditions {
         SectorCommand.addTo(root);           // perm 2: sector registry ops
         OpsCommand.addTo(root);              // perm 2/3: gameplay administration
         LifecycleCommand.addTo(root);        // perm 2/3: production lifecycle
+        com.bigbangcraft.expeditions.command.AutomationCommand.addTo(root); // perm 2/3: goal-05 automation
         e.getDispatcher().register(root);
         LOG.info("Registered /expedition command tree");
     }
