@@ -1,0 +1,8 @@
+[staging] AUTH_OK 229cd229-7121-4423-9b12-f6703bd2dddc scope=DIMENSION generation=6
+[staging] target confined: /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/world/dimensions/bigbangexpeditions/expedition
+[staging-auth] backup manifest: 34 files, 16860617 bytes
+[staging] backup verified at /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/bigbangexpeditions/backups/229cd229-7121-4423-9b12-f6703bd2dddc
+[staging] deleted 31 files under /home/pedro/Documentos/java/deceasedcraft/BigBangExpeditions/.staging/server/world/dimensions/bigbangexpeditions/expedition
+[staging-auth] lifecycle -> RESETTING
+[staging] RESET COMPLETE for authorization 229cd229-7121-4423-9b12-f6703bd2dddc
+[staging] next: start server — startup gate resumes BOOTING->VALIDATING; record-validation PASS then /expedition lifecycle open

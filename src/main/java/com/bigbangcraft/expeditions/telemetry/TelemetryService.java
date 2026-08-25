@@ -100,6 +100,16 @@ public final class TelemetryService {
     void boot() throws IOException {
         catchUpUnarchivedGenerations();
         LifecycleRecord r = RuntimeLifecycle.get(server);
+        if (r.status == com.bigbangcraft.expeditions.lifecycle.LifecycleState.RESETTING
+                || r.status == com.bigbangcraft.expeditions.lifecycle.LifecycleState.BOOTING
+                || r.status == com.bigbangcraft.expeditions.lifecycle.LifecycleState.VALIDATING) {
+            // mid-renewal boot: generation will advance at validated reopen;
+            // binding NOW would attach a ghost record to the dying generation.
+            // ExpeditionOpened binds the fresh one at open; until then facts are
+            // refused and evaluations read unavailable — the safe direction.
+            audit("TELEMETRY_BIND_DEFERRED", "status=" + r.status);
+            return;
+        }
         bind(r.generation, r.lastOpenedAtEpochMs);
     }
 
